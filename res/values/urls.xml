@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="wui_geo_lookup">http://api.wunderground.com/auto/wui/geo/GeoLookupXML/index.xml?query=</string>
+<string name="wui_airport">http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query=</string>
+<string name="wui_pws">http://api.wunderground.com/weatherstation/WXCurrentObXML.asp?ID=</string>
+<string name="wui_alert">http://api.wunderground.com/auto/wui/geo/AlertsXML/index.xml?query=</string>
+<string name="wui_forecast">http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=</string>
+</resources>

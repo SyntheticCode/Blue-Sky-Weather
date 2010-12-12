@@ -11,13 +11,30 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int icon=0x7f020000;
+        public static final int ic_menu_search=0x7f020000;
+        public static final int icon=0x7f020001;
+    }
+    public static final class id {
+        public static final int main_text=0x7f070000;
+        public static final int menu_search=0x7f070001;
     }
     public static final class layout {
         public static final int main=0x7f030000;
     }
+    public static final class menu {
+        public static final int menu=0x7f060000;
+    }
     public static final class string {
-        public static final int app_name=0x7f040001;
-        public static final int hello=0x7f040000;
+        public static final int app_name=0x7f050001;
+        public static final int hello=0x7f050000;
+        public static final int search_hint=0x7f050002;
+        public static final int wui_airport=0x7f050004;
+        public static final int wui_alert=0x7f050006;
+        public static final int wui_forecast=0x7f050007;
+        public static final int wui_geo_lookup=0x7f050003;
+        public static final int wui_pws=0x7f050005;
+    }
+    public static final class xml {
+        public static final int searchable=0x7f040000;
     }
 }
