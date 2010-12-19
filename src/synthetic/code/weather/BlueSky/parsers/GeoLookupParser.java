@@ -1,13 +1,24 @@
 package synthetic.code.weather.BlueSky.parsers;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import synthetic.code.weather.BlueSky.R;
 import android.util.Log;
 import android.util.Xml;
+import android.content.Context;
 
+/**
+ * Parser object for GeoLookupXML feed from Weather Underground.
+ * Used for building a list of Cities that matched queried location.
+ * @author David
+ *
+ */
 public class GeoLookupParser extends BaseFeedParser {
 	static final String LOCATION_LIST_TAG = "locations";
 	static final String LOCATION_TAG = "location";
@@ -19,8 +30,11 @@ public class GeoLookupParser extends BaseFeedParser {
 	static final String ERROR_TAG = "wui_error";
 	static final String ERROR_TITLE_TAG = "title";
 	
-	public GeoLookupParser(String feedUrl) {
-		super(feedUrl);
+	// Use the calling Activity's context to get the string from resources
+	public GeoLookupParser(Context parentContext, String query) throws UnsupportedEncodingException {
+		// Build the feed url from the query and the base url
+		// Use URLEncoder.encode() to remove invalid characters from query
+		super(parentContext.getString(R.string.wui_geo_lookup) + URLEncoder.encode(query, "UTF-8"));
 	}
 
 	/**
@@ -32,6 +46,7 @@ public class GeoLookupParser extends BaseFeedParser {
 	 * from a GeoLookupXML query. One type is a list of cities that match
 	 * the queried value. The other type is information about the only city
 	 * match that the query found.
+	 * @return List of Cities that match location.
 	 */
 	@Override
 	public ArrayList<String> parse() {

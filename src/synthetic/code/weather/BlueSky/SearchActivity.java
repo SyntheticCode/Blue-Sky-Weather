@@ -35,7 +35,7 @@ public class SearchActivity extends ListActivity {
 			GeoLookupParser parser;
 			// Send query to Weather Underground, parse the results, and display them
 			try {
-				parser = new GeoLookupParser(getString(R.string.wui_geo_lookup) + URLEncoder.encode(query, "UTF-8"));
+				parser = new GeoLookupParser(this, query);
 				searchResults = parser.parse();
 				
 				// If there were any results then use the built in Android list view to display the results
