@@ -18,36 +18,40 @@ import android.content.Intent;
 import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
 
 public class SearchActivity extends ListActivity {
+	public static final String KEY_QUERY = "QUERY";
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		//setContentView(R.layout.main);
-		
-		//TextView searchText = (TextView) findViewById(R.id.main_text);
+
 		Intent intent = getIntent();
 		
-		if(Intent.ACTION_SEARCH.equals(intent.getAction())) {
-			// Get string entered in search box
-			String query = intent.getStringExtra(SearchManager.QUERY);
+		// Get string entered in search box
+		String query = intent.getStringExtra(KEY_QUERY);
+		
+		ArrayList<String> searchResults = null;
+		GeoLookupParser parser;
+		// Send query to Weather Underground, parse the results, and display them
+		try {
+			parser = new GeoLookupParser(this, query);
+			searchResults = parser.parse();
 			
-			ArrayList<String> searchResults = null;
-			GeoLookupParser parser;
-			// Send query to Weather Underground, parse the results, and display them
-			try {
-				parser = new GeoLookupParser(this, query);
-				searchResults = parser.parse();
-				
-				// If there were any results then use the built in Android list view to display the results
-				if(searchResults != null) {
-					this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults));
-				}
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			// If there were any results then use the built in Android list view to display the results
+			if(searchResults != null) {
+				this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults));
 			}
-			
-			
+			else {
+				// Warn user and the cancel
+				Toast.makeText(this, "No City Found", Toast.LENGTH_LONG).show();
+				setResult(RESULT_CANCELED);
+				finish();
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			// Warn user and then cancel
+			Toast.makeText(this, "Parse Error", Toast.LENGTH_LONG).show();
+			setResult(RESULT_CANCELED);
+			finish();
 		}
 	}
 	
@@ -58,7 +62,12 @@ public class SearchActivity extends ListActivity {
 		// Get the item that was clicked
 		Object o = this.getListAdapter().getItem(position);
 		String keyword = o.toString();
-		Toast.makeText(this, "You selected: " + keyword, Toast.LENGTH_LONG).show();
+		
+		// Send clicked item back to parent
+		Intent intent = new Intent();
+		intent.putExtra(KEY_QUERY, keyword);
+		setResult(RESULT_OK, intent);
+		finish();
 	}
 
 }

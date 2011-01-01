@@ -55,7 +55,7 @@ public class StationPullParser extends BaseFeedParser {
 	 * @param query : Location to build list of stations for {"city, state", "zipcode", "lat,lon", "airport code"}
 	 * @throws UnsupportedEncodingException
 	 */
-	protected StationPullParser(Context parentContext, String query) throws UnsupportedEncodingException {
+	public StationPullParser(Context parentContext, String query) throws UnsupportedEncodingException {
 		// Build the feed url from the query and the geoLookup url
 		// Use URLEncoder.encode() to remove invalid characters from query
 		super(parentContext.getString(R.string.wui_geo_lookup) + URLEncoder.encode(query, "UTF-8"));
