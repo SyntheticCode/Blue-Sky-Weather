@@ -11,22 +11,27 @@ public final class R {
     public static final class attr {
     }
     public static final class drawable {
-        public static final int ic_menu_search=0x7f020000;
-        public static final int icon=0x7f020001;
+        public static final int airplane_med=0x7f020000;
+        public static final int ic_menu_search=0x7f020001;
+        public static final int icon=0x7f020002;
+        public static final int pws_med=0x7f020003;
     }
     public static final class id {
         public static final int main_text=0x7f070000;
-        public static final int menu_search=0x7f070007;
-        public static final int weather_location=0x7f070002;
-        public static final int weather_stationSpinner=0x7f070003;
-        public static final int weather_temp=0x7f070005;
-        public static final int weather_updateTime=0x7f070004;
-        public static final int weather_wind=0x7f070006;
-        public static final int widget38=0x7f070001;
+        public static final int menu_search=0x7f070009;
+        public static final int spinner_icon=0x7f070001;
+        public static final int spinner_text=0x7f070002;
+        public static final int weather_location=0x7f070004;
+        public static final int weather_stationSpinner=0x7f070005;
+        public static final int weather_temp=0x7f070007;
+        public static final int weather_updateTime=0x7f070006;
+        public static final int weather_wind=0x7f070008;
+        public static final int widget38=0x7f070003;
     }
     public static final class layout {
         public static final int main=0x7f030000;
-        public static final int weather=0x7f030001;
+        public static final int spinner_item=0x7f030001;
+        public static final int weather=0x7f030002;
     }
     public static final class menu {
         public static final int menu=0x7f060000;
