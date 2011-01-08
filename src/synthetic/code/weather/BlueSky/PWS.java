@@ -8,33 +8,20 @@ package synthetic.code.weather.BlueSky;
  * @author David
  *
  */
-public class PWS {
-	private boolean empty;
+public class PWS extends BaseStation {
 	private String	url;
 	private String	stationID;
 	private String	name; // <neighborhood> in XML
-	private String	city;
-	private String	state;
-	private String	country;
 	private short	distanceKm;
 	private short	distanceMi;
-	private WeatherData weather;
 	
 	public PWS() {
-		this.empty = true;
+		super();
 		this.url = "";
 		this.stationID = "";
 		this.name = "";
-		this.city = "";
-		this.state = "";
-		this.country = "";
 		this.distanceKm = 0;
 		this.distanceMi = 0;
-		weather = null;
-	}
-	
-	public boolean empty() {
-		return this.empty;
 	}
 	
 	public void setUrl(String url) {
@@ -64,33 +51,6 @@ public class PWS {
 		return this.name;
 	}
 	
-	public void setCity(String city) {
-		this.empty = false;
-		this.city = city.trim();
-	}
-	
-	public String getCity() {
-		return this.city;
-	}
-	
-	public void setState(String state) {
-		this.empty = false;
-		this.state = state.trim();
-	}
-	
-	public String getState() {
-		return this.state;
-	}
-	
-	public void setCountry(String country) {
-		this.empty = false;
-		this.country = country.trim();
-	}
-	
-	public String getCountry() {
-		return this.country;
-	}
-	
 	public void setDistance(short distance, boolean metric) {
 		this.empty = false;
 		if(metric) {
@@ -114,14 +74,5 @@ public class PWS {
 	public short getDistance(boolean metric) {
 		if(metric) return this.distanceKm;
 		else return this.distanceMi;
-	}
-
-	public void setWeather(WeatherData weather) {
-		this.empty = false;
-		this.weather = weather;
-	}
-
-	public WeatherData getWeather() {
-		return weather;
 	}
 }

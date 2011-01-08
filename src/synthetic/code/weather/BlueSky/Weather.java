@@ -4,18 +4,22 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import synthetic.code.weather.BlueSky.parsers.PwsPullParser;
 import synthetic.code.weather.BlueSky.parsers.StationPullParser;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -25,11 +29,18 @@ import android.widget.Toast;
 public class Weather extends Activity {
 	public static final int SEARCH_CITY = 1;
 
+	
 	private StationList stationList;
-	private Spinner stationSpinner;
-	private TextView location;
 	private ArrayList<String> stations;
 	private int pwsStartIndex;
+	private PWS currentStation;
+	// weather.xml layout objects
+	private Spinner stationSpinner;
+	private TextView location;
+	private TextView updateTime;
+	private TextView temperature;
+	private TextView wind;
+	
 
 	/** Called when the activity is first created. */
 	@Override
@@ -39,8 +50,28 @@ public class Weather extends Activity {
 
 		// Create class objects
 		stationList = new StationList();
-		location = (TextView) findViewById(R.id.weather_location);
 		stationSpinner = (Spinner) findViewById(R.id.weather_stationSpinner);
+		location = (TextView) findViewById(R.id.weather_location);
+		updateTime = (TextView) findViewById(R.id.weather_updateTime);
+		temperature = (TextView) findViewById(R.id.weather_temp);
+		wind = (TextView) findViewById(R.id.weather_wind);
+		
+		// Set listener for spinner events
+		stationSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> parentView, View selectedItemView,
+					int position, long id) {
+				stationSelected(position);
+				
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// Do nothing
+			}
+			
+		});
 	}
 
 	@Override
@@ -108,7 +139,53 @@ public class Weather extends Activity {
 			startActivityForResult(i, SEARCH_CITY);
 		}
 	}
+	
+	/**
+	 * Updates the weather info for the selected station.
+	 * @param position : position in spinner of station
+	 */
+	protected void stationSelected(int position) {
+		// All airports are first in the list
+		if(position < pwsStartIndex) {
+			// parse airport
+		}
+		else {
+			// Get the selected station
+			currentStation = stationList.getPws(position - pwsStartIndex); // stationList is not indexed like the spinner
+			Log.v("Station ID", currentStation.getId());
+			
+			// Make sure the station is not empty and there is a non empty id
+			if(!currentStation.empty() && (currentStation.getId() != "")) {
+				try {
+					PwsPullParser parser = new PwsPullParser(this, currentStation);
+					
+					// Get only weather data for currentStation
+					parser.setupParse(true);
+					currentStation = parser.parse();
+					
+					updateWeather(currentStation);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Update layout objects with current weather info.
+	 * @param station : station to get weather info from.
+	 */
+	private void updateWeather(PWS station) {
+		updateTime.setText(station.getWeather().getTime());
+		temperature.setText(station.getWeather().getTempF() + "°F");
+		wind.setText(station.getWeather().getWindDirection() + " " + station.getWeather().getWindSpeed() + "mph");
+	}
 
+	/**
+	 * Parse results for city query to get a list of stations.
+	 * @param city : city to search for, must be unique example : "city, state"
+	 */
 	private void getStationList(String city) {
 		try {
 			StationPullParser parser = new StationPullParser(this, city);
@@ -125,6 +202,12 @@ public class Weather extends Activity {
 		stationSpinner.setAdapter(adapter);
 	}
 
+	/**
+	 * Custom Adapter class for stationSpinner.
+	 * Has a custom layout with an icon and text for each row.
+	 * @author David
+	 *
+	 */
 	public class StationAdapter extends ArrayAdapter<String> {
 
 		public StationAdapter(Context context, int resource,
