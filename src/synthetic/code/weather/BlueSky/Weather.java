@@ -237,9 +237,9 @@ public class Weather extends Activity {
 
 			// Pick which icon to use (important that all airport are first in the list)
 			if (position < pwsStartIndex) {
-				icon.setImageResource(R.drawable.airplane_med);
+				icon.setImageResource(R.drawable.ic_airport);
 			} else {
-				icon.setImageResource(R.drawable.pws_med);
+				icon.setImageResource(R.drawable.ic_pws);
 			}
 
 			return row;

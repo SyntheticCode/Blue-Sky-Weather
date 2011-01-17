@@ -3,6 +3,6 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<item
 		android:title="Search"
-		android:icon="@drawable/ic_menu_search"
+		android:icon="@android:drawable/ic_menu_search"
 		android:id="@+id/menu_search"></item>
 </menu>
