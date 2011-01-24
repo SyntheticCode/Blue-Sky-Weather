@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import synthetic.code.weather.BlueSky.parsers.PwsPullParser;
+import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
 import synthetic.code.weather.BlueSky.parsers.StationPullParser;
 import android.app.Activity;
 import android.app.SearchManager;
@@ -32,8 +32,9 @@ public class Weather extends Activity {
 	
 	private StationList stationList;
 	private ArrayList<String> stations;
-	private int pwsStartIndex;
-	private PWS currentStation;
+	private WeatherStation currentStation;
+	//private int pwsStartIndex;
+	//private PWS currentStation;
 	// weather.xml layout objects
 	private Spinner stationSpinner;
 	private TextView location;
@@ -62,6 +63,7 @@ public class Weather extends Activity {
 			@Override
 			public void onItemSelected(AdapterView<?> parentView, View selectedItemView,
 					int position, long id) {
+				Log.v("Spinner", "Position = " + position);
 				stationSelected(position);
 				
 			}
@@ -113,11 +115,13 @@ public class Weather extends Activity {
 				getStationList(query);
 
 				// Add airports to the list (airports must be first)
-				stations = stationList.getAirportNameList();
-				// Get the index of the first PWS
-				pwsStartIndex = stations.size();
-				// Add PWS to the list
-				stations.addAll(stationList.getPwsNameList());
+//				stations = stationList.getAirportNameList();
+//				// Get the index of the first PWS
+//				pwsStartIndex = stations.size();
+//				// Add PWS to the list
+//				stations.addAll(stationList.getPwsNameList());
+				
+				stations = stationList.getStationNamesList();
 
 				// Update the station spinner with list of PWS stations
 				updateStationSpinner(stations);
@@ -146,18 +150,20 @@ public class Weather extends Activity {
 	 */
 	protected void stationSelected(int position) {
 		// All airports are first in the list
-		if(position < pwsStartIndex) {
-			// parse airport
-		}
-		else {
+		//if(stationList.getStationType(position) == WeatherStation.StationType.AIRPORT) {
+		//	// parse airport
+		//}
+		//else if(stationList.getStationType(position) == WeatherStation.StationType.PWS) {
+		Log.v("sationSelected", "Position = " + position);
+		
 			// Get the selected station
-			currentStation = stationList.getPws(position - pwsStartIndex); // stationList is not indexed like the spinner
+			currentStation = stationList.get(position);
 			Log.v("Station ID", currentStation.getId());
 			
 			// Make sure the station is not empty and there is a non empty id
 			if(!currentStation.empty() && (currentStation.getId() != "")) {
 				try {
-					PwsPullParser parser = new PwsPullParser(this, currentStation);
+					WeatherPullParser parser = new WeatherPullParser(this, currentStation);
 					
 					// Get only weather data for currentStation
 					parser.setupParse(true);
@@ -166,17 +172,18 @@ public class Weather extends Activity {
 					updateWeather(currentStation);
 				} catch (UnsupportedEncodingException e) {
 					// TODO Auto-generated catch block
+					Log.v("WeatherPullParser", "Parse failed [" + e + "]");
 					e.printStackTrace();
 				}
 			}
-		}
+		//}
 	}
 	
 	/**
 	 * Update layout objects with current weather info.
 	 * @param station : station to get weather info from.
 	 */
-	private void updateWeather(PWS station) {
+	private void updateWeather(WeatherStation station) {
 		updateTime.setText(station.getWeather().getTime());
 		temperature.setText(station.getWeather().getTempF() + "°F");
 		wind.setText(station.getWeather().getWindDirection() + " " + station.getWeather().getWindSpeed() + "mph");
@@ -235,10 +242,11 @@ public class Weather extends Activity {
 
 			ImageView icon = (ImageView) row.findViewById(R.id.spinner_icon);
 
-			// Pick which icon to use (important that all airport are first in the list)
-			if (position < pwsStartIndex) {
+			// Pick which icon to use
+			if(stationList.getStationType(position) == WeatherStation.StationType.AIRPORT) {
 				icon.setImageResource(R.drawable.ic_airport);
-			} else {
+			}
+			else if(stationList.getStationType(position) == WeatherStation.StationType.PWS) {
 				icon.setImageResource(R.drawable.ic_pws);
 			}
 

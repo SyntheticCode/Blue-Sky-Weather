@@ -10,8 +10,9 @@ import java.net.URLEncoder;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import synthetic.code.weather.BlueSky.Airport;
-import synthetic.code.weather.BlueSky.PWS;
+//import synthetic.code.weather.BlueSky.Airport;
+//import synthetic.code.weather.BlueSky.PWS;
+import synthetic.code.weather.BlueSky.WeatherStation;
 import synthetic.code.weather.BlueSky.R;
 import synthetic.code.weather.BlueSky.StationList;
 
@@ -154,7 +155,7 @@ public class StationPullParser extends BaseFeedParser {
 		String tag = null;
 		int eventType;
 		
-		PWS station = new PWS();
+		WeatherStation station = new WeatherStation(WeatherStation.StationType.PWS);
 		
 		while(true) {
 			eventType = parser.next();
@@ -193,7 +194,7 @@ public class StationPullParser extends BaseFeedParser {
 		}
 		
 		if(!station.empty()) {
-			this.currentStationList.addPws(station);
+			this.currentStationList.add(station);
 		}
 	}
 
@@ -208,7 +209,7 @@ public class StationPullParser extends BaseFeedParser {
 		String tag = null;
 		int eventType;
 		
-		Airport station = new Airport();
+		WeatherStation station = new WeatherStation(WeatherStation.StationType.AIRPORT);
 		
 		while(true) {
 			eventType = parser.next();
@@ -216,7 +217,7 @@ public class StationPullParser extends BaseFeedParser {
 			if(eventType == XmlPullParser.START_TAG) {
 				tag = parser.getName();
 				if(tag.equalsIgnoreCase(AIRPORT_CODE)) {
-					station.setAirportCode(parser.nextText());
+					station.setId(parser.nextText());
 				}
 				else if(tag.equalsIgnoreCase(STATION_CITY)) {
 					station.setCity(parser.nextText());
@@ -246,7 +247,7 @@ public class StationPullParser extends BaseFeedParser {
 		
 		if(!station.empty()) {
 			//Log.v("WeatherWidget::StationPullParser", "Added Airport");
-			this.currentStationList.addAirport(station);
+			this.currentStationList.add(station);
 		}
 	}
 }
