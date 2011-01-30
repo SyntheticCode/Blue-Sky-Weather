@@ -17,7 +17,7 @@ import android.content.Intent;
 
 import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
 
-public class SearchActivity extends ListActivity {
+public class SearchResultActivity extends ListActivity {
 	public static final String KEY_QUERY = "QUERY";
 	
 	@Override

@@ -4,12 +4,17 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
+//import synthetic.code.weather.BlueSky.WeatherActivity.StationAdapter;
 import synthetic.code.weather.BlueSky.parsers.StationPullParser;
+import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
+
 import android.app.Activity;
 import android.app.SearchManager;
+import android.app.TabActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,36 +24,51 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.AdapterView.OnItemSelectedListener;
 
-public class Weather extends Activity {
+public class BlueSkyActivity extends TabActivity {
 	public static final int SEARCH_CITY = 1;
-
 	
+	private TabHost tabHost;
 	private StationList stationList;
 	private ArrayList<String> stations;
 	private WeatherStation currentStation;
-	//private int pwsStartIndex;
-	//private PWS currentStation;
-	// weather.xml layout objects
 	private Spinner stationSpinner;
 	private TextView location;
 	private TextView updateTime;
 	private TextView temperature;
 	private TextView wind;
-	
 
-	/** Called when the activity is first created. */
-	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.weather);
+		setContentView(R.layout.main);
+		
+		Resources res = getResources();
+		
+		tabHost = getTabHost();
+		
+		tabHost.addTab(tabHost
+				.newTabSpec("Weather")
+				.setIndicator("Weather", res.getDrawable(R.drawable.ic_airport))
+				.setContent(R.id.tabWeatherLayout));
+		
+		tabHost.addTab(tabHost
+				.newTabSpec("Forecast")
+				.setIndicator("Forecast", res.getDrawable(R.drawable.ic_pws))
+				.setContent(R.id.tabForecastLayout));
+		
+		tabHost.setCurrentTab(0);
+		
 
+//		// Set tabs Colors
+//		tabHost.setBackgroundColor(Color.BLACK);
+//		tabHost.getTabWidget().setBackgroundColor(Color.BLACK);
+		
 		// Create class objects
 		stationList = new StationList();
 		stationSpinner = (Spinner) findViewById(R.id.weather_stationSpinner);
@@ -75,7 +95,7 @@ public class Weather extends Activity {
 			
 		});
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Create the menu for this page
@@ -107,19 +127,12 @@ public class Weather extends Activity {
 			// Only look at results that returned OK
 			if (resultCode == Activity.RESULT_OK) {
 				Bundle extras = data.getExtras();
-				String query = extras.getString(SearchActivity.KEY_QUERY);
+				String query = extras.getString(SearchResultActivity.KEY_QUERY);
 
 				// Set the Location (city)
 				location.setText(query);
 				// Get the list of stations for the city
 				getStationList(query);
-
-				// Add airports to the list (airports must be first)
-//				stations = stationList.getAirportNameList();
-//				// Get the index of the first PWS
-//				pwsStartIndex = stations.size();
-//				// Add PWS to the list
-//				stations.addAll(stationList.getPwsNameList());
 				
 				stations = stationList.getStationNamesList();
 
@@ -137,8 +150,8 @@ public class Weather extends Activity {
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
 
-			Intent i = new Intent(this, SearchActivity.class);
-			i.putExtra(SearchActivity.KEY_QUERY, query);
+			Intent i = new Intent(this, SearchResultActivity.class);
+			i.putExtra(SearchResultActivity.KEY_QUERY, query);
 
 			startActivityForResult(i, SEARCH_CITY);
 		}
