@@ -86,7 +86,11 @@ public class WeatherStation {
 	}
 	public void setLatitude(String lat) {
 		this.empty = false;
-		this.lat = Float.parseFloat(lat);
+		try {
+			this.lat = Float.parseFloat(lat);
+		} catch (NumberFormatException e) {
+			this.lat = 0;
+		}
 	}
 	public float getLatitude() {
 		return lat;
@@ -97,7 +101,11 @@ public class WeatherStation {
 	}
 	public void setLongitude(String lon) {
 		this.empty = false;
-		this.lon = Float.parseFloat(lon);
+		try {
+			this.lon = Float.parseFloat(lon);
+		} catch (NumberFormatException e) {
+			this.lon = 0;
+		}
 	}
 	public float getLongitude() {
 		return lon;
@@ -108,7 +116,11 @@ public class WeatherStation {
 	}
 	public void setElevation(String elevation) {
 		this.empty = false;
-		this.elevation = Integer.parseInt(elevation);
+		try {
+			this.elevation = Integer.parseInt(elevation);
+		} catch (NumberFormatException e) {
+			this.elevation = 0;
+		}
 	}
 	public int getElevation() {
 		return elevation;
@@ -152,11 +164,18 @@ public class WeatherStation {
 	}
 	public void setDistance(String distance, boolean metric) {
 		this.empty = false;
+		Short d;
+		try {
+			d = Short.parseShort(distance);
+		} catch (NumberFormatException e) {
+			d = 0;
+		}
+		
 		if(metric) {
-			this.distanceKm = Short.parseShort(distance);
+			this.distanceKm = d;
 		}
 		else {
-			this.distanceMi = Short.parseShort(distance);
+			this.distanceMi = d;
 		}
 	}
 	public short getDistance(boolean metric) {

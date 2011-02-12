@@ -4,8 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import android.util.Log;
-
 /**
  * Object that holds weather data at a specific time.
  * @author David

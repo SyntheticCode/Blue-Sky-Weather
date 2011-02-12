@@ -105,7 +105,7 @@ public class WeatherPullParser extends BaseFeedParser {
 			int eventType = parser.getEventType();
 			
 			boolean done = false;
-			while (eventType != XmlPullParser.END_DOCUMENT && !done) {
+			while (eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 				String name = null;
 				switch(eventType) {
 				case XmlPullParser.START_TAG:
@@ -129,7 +129,7 @@ public class WeatherPullParser extends BaseFeedParser {
 							currentStation.setLongitude(parser.nextText());
 						}
 						else if(name.equalsIgnoreCase(ELEVATION)) {
-							currentStation.setElevation(parser.nextText());
+							currentStation.setElevation(cleanElevation(parser.nextText()));
 						}
 					}
 					
@@ -165,4 +165,8 @@ public class WeatherPullParser extends BaseFeedParser {
 		return currentStation;
 	}
 	
+	static private String cleanElevation(String elevation) {
+		// Elevation includes " ft" so remove it so string to int conversion works
+		return elevation.substring(0, elevation.length() - 3);
+	}
 }

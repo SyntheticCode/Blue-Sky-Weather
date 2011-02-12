@@ -28,6 +28,8 @@
 				layout="@layout/weather" />
 			<include
 				layout="@layout/forecast" />
+			<include
+				layout="@layout/weather_stations" />
 		</FrameLayout>
 
 	</LinearLayout>

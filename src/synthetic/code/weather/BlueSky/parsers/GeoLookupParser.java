@@ -73,7 +73,7 @@ public class GeoLookupParser extends BaseFeedParser {
 						cityList = parseSingle(xml);
 					}
 					else if(tagName.equalsIgnoreCase(ERROR_TAG)) {
-						// ToDo : Do something with the error title
+						// TODO : Do something with the error title
 					}
 				}
 			}
@@ -95,7 +95,7 @@ public class GeoLookupParser extends BaseFeedParser {
 			String atrValue = null;
 			boolean skip = false;
 			
-			while(eventType != XmlPullParser.END_DOCUMENT && !done) {
+			while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 				
 				switch(eventType) {
 					case XmlPullParser.START_TAG:
@@ -141,7 +141,7 @@ public class GeoLookupParser extends BaseFeedParser {
 			String cityValue = null;
 			String stateValue = null;
 			
-			while(eventType != XmlPullParser.END_DOCUMENT && !done) {
+			while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 				
 				switch(eventType) {
 					case XmlPullParser.START_TAG:

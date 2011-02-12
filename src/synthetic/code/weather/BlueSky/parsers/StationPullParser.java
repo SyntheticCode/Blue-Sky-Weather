@@ -67,6 +67,7 @@ public class StationPullParser extends BaseFeedParser {
 	 * @return StationList object with all of the stations for parsed location.
 	 */
 	public StationList parse() {
+		abort = false;
 		currentStationList = new StationList();
 		
 		//Log.v("WeatherWidget::StationPullParser", "parse() Started");
@@ -80,7 +81,7 @@ public class StationPullParser extends BaseFeedParser {
 			STATION_TYPE stationType = STATION_TYPE.STATION_NULL;
 			
 			boolean done = false;
-			while (eventType != XmlPullParser.END_DOCUMENT && !done) {
+			while (eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 				String tagName = null;
 				
 				switch(eventType) {
@@ -157,7 +158,7 @@ public class StationPullParser extends BaseFeedParser {
 		
 		WeatherStation station = new WeatherStation(WeatherStation.StationType.PWS);
 		
-		while(true) {
+		while(!abort) {
 			eventType = parser.next();
 			
 			if(eventType == XmlPullParser.START_TAG) {
@@ -211,7 +212,7 @@ public class StationPullParser extends BaseFeedParser {
 		
 		WeatherStation station = new WeatherStation(WeatherStation.StationType.AIRPORT);
 		
-		while(true) {
+		while(!abort) {
 			eventType = parser.next();
 			
 			if(eventType == XmlPullParser.START_TAG) {
@@ -250,4 +251,5 @@ public class StationPullParser extends BaseFeedParser {
 			this.currentStationList.add(station);
 		}
 	}
+
 }

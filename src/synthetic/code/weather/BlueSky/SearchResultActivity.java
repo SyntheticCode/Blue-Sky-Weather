@@ -2,23 +2,24 @@ package synthetic.code.weather.BlueSky;
 
 import java.util.ArrayList;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
-import android.app.Activity;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.app.SearchManager;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 
 import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
 
 public class SearchResultActivity extends ListActivity {
 	public static final String KEY_QUERY = "QUERY";
+	//String query;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -29,31 +30,29 @@ public class SearchResultActivity extends ListActivity {
 		// Get string entered in search box
 		String query = intent.getStringExtra(KEY_QUERY);
 		
-		ArrayList<String> searchResults = null;
-		GeoLookupParser parser;
-		// Send query to Weather Underground, parse the results, and display them
-		try {
-			parser = new GeoLookupParser(this, query);
-			searchResults = parser.parse();
-			
-			// If there were any results then use the built in Android list view to display the results
-			if(searchResults != null) {
-				this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, searchResults));
-			}
-			else {
-				// Warn user and the cancel
-				Toast.makeText(this, "No City Found", Toast.LENGTH_LONG).show();
-				setResult(RESULT_CANCELED);
-				finish();
-			}
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+		new GeoLookupParserTask().execute(query);
+		
+	}
+	
+	public void showResults(ArrayList<String> results) {
+		if(results != null) {
+			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
+		}
+		else {
 			// Warn user and then cancel
-			Toast.makeText(this, "Parse Error", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "No City Found", Toast.LENGTH_LONG).show();
 			setResult(RESULT_CANCELED);
 			finish();
 		}
 	}
+	
+	public void showError() {
+		// Warn user and then cancel
+		Toast.makeText(this, "Parse Error", Toast.LENGTH_LONG).show();
+		setResult(RESULT_CANCELED);
+		finish();
+	}
+	
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -70,4 +69,58 @@ public class SearchResultActivity extends ListActivity {
 		finish();
 	}
 
+	
+	/**
+	 * Starts an AsyncTask for parsing the list of cities.
+	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
+	 * @author David
+	 *
+	 */
+	private class GeoLookupParserTask extends AsyncTask<String, Void, ArrayList<String>> {
+
+		private final ProgressDialog progressDialog = new ProgressDialog(SearchResultActivity.this);
+		private GeoLookupParser parser;
+
+		
+		protected void onPreExecute() {
+			this.progressDialog.setMessage("Searching...");
+			this.progressDialog.setIndeterminate(true);
+			this.progressDialog.setCancelable(true);
+			this.progressDialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					if(parser != null) {
+						parser.stopParse();
+					}
+					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
+					cancel(true);
+				}
+	    	});
+			
+			this.progressDialog.show();
+		}
+		
+		protected ArrayList<String> doInBackground(String... params) {
+			// Try creating the parser
+			try {
+				parser = new GeoLookupParser(SearchResultActivity.this, params[0]);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return new ArrayList<String>();
+			}
+			
+			// Parse the stations
+			return parser.parse();
+		}
+		
+		protected void onPostExecute(ArrayList<String> result) {
+			showResults(result);
+			
+			// Close the dialog
+			if(this.progressDialog.isShowing()) {
+				this.progressDialog.dismiss();
+			}
+		}
+	};
+	
 }

@@ -1,6 +1,8 @@
 package synthetic.code.weather.BlueSky;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,12 +11,16 @@ import synthetic.code.weather.BlueSky.parsers.StationPullParser;
 import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.app.TabActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,10 +28,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -38,7 +47,8 @@ public class BlueSkyActivity extends TabActivity {
 	private StationList stationList;
 	private ArrayList<String> stations;
 	private WeatherStation currentStation;
-	private Spinner stationSpinner;
+	private ListView stationListView;
+	//private Spinner stationSpinner;
 	private TextView location;
 	private TextView updateTime;
 	private TextView temperature;
@@ -62,7 +72,13 @@ public class BlueSkyActivity extends TabActivity {
 				.setIndicator("Forecast", res.getDrawable(R.drawable.ic_pws))
 				.setContent(R.id.tabForecastLayout));
 		
+		tabHost.addTab(tabHost
+				.newTabSpec("Stations")
+				.setIndicator("Stations", res.getDrawable(R.drawable.ic_airport))
+				.setContent(R.id.tabWeatherStationsLayout));
+		
 		tabHost.setCurrentTab(0);
+		
 		
 
 //		// Set tabs Colors
@@ -71,29 +87,24 @@ public class BlueSkyActivity extends TabActivity {
 		
 		// Create class objects
 		stationList = new StationList();
-		stationSpinner = (Spinner) findViewById(R.id.weather_stationSpinner);
+		stationListView = (ListView) findViewById(R.id.weatherStations_list);
+		//stationSpinner = (Spinner) findViewById(R.id.weather_stationSpinner);
 		location = (TextView) findViewById(R.id.weather_location);
 		updateTime = (TextView) findViewById(R.id.weather_updateTime);
 		temperature = (TextView) findViewById(R.id.weather_temp);
 		wind = (TextView) findViewById(R.id.weather_wind);
 		
-		// Set listener for spinner events
-		stationSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-
+		stationListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
-			public void onItemSelected(AdapterView<?> parentView, View selectedItemView,
+			public void onItemClick(AdapterView<?> parentView, View selectedItemView,
 					int position, long id) {
 				Log.v("Spinner", "Position = " + position);
 				stationSelected(position);
 				
 			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-				// Do nothing
-			}
 			
 		});
+		
 	}
 	
 	@Override
@@ -131,13 +142,10 @@ public class BlueSkyActivity extends TabActivity {
 
 				// Set the Location (city)
 				location.setText(query);
-				// Get the list of stations for the city
-				getStationList(query);
 				
-				stations = stationList.getStationNamesList();
-
-				// Update the station spinner with list of PWS stations
-				updateStationSpinner(stations);
+				// Get the list of stations for the city (run in a thread)
+				new StationParserTask().execute(query);
+				
 			}
 		}
 
@@ -169,26 +177,30 @@ public class BlueSkyActivity extends TabActivity {
 		//else if(stationList.getStationType(position) == WeatherStation.StationType.PWS) {
 		Log.v("sationSelected", "Position = " + position);
 		
-			// Get the selected station
-			currentStation = stationList.get(position);
-			Log.v("Station ID", currentStation.getId());
+		// Get the selected station
+		currentStation = stationList.get(position);
+		Log.v("Station ID", currentStation.getId());
+		
+		// Make sure the station is not empty and there is a non empty id
+		if(!currentStation.empty() && (currentStation.getId() != "")) {
+			new WeatherParserTask().execute(currentStation);
 			
-			// Make sure the station is not empty and there is a non empty id
-			if(!currentStation.empty() && (currentStation.getId() != "")) {
-				try {
-					WeatherPullParser parser = new WeatherPullParser(this, currentStation);
-					
-					// Get only weather data for currentStation
-					parser.setupParse(true);
-					currentStation = parser.parse();
-					
-					updateWeather(currentStation);
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					Log.v("WeatherPullParser", "Parse failed [" + e + "]");
-					e.printStackTrace();
-				}
-			}
+//			try {
+////				WeatherPullParser parser = new WeatherPullParser(this, currentStation);
+////				
+////				// Get only weather data for currentStation
+////				parser.setupParse(true);
+////				currentStation = parser.parse();
+//				
+////				updateWeather(currentStation);
+//			} catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				Log.v("WeatherPullParser", "Parse failed [" + e + "]");
+//				e.printStackTrace();
+//			}
+		}
+			
+			tabHost.setCurrentTab(0);
 		//}
 	}
 	
@@ -202,25 +214,127 @@ public class BlueSkyActivity extends TabActivity {
 		wind.setText(station.getWeather().getWindDirection() + " " + station.getWeather().getWindSpeed() + "mph");
 	}
 
-	/**
-	 * Parse results for city query to get a list of stations.
-	 * @param city : city to search for, must be unique example : "city, state"
-	 */
-	private void getStationList(String city) {
-		try {
-			StationPullParser parser = new StationPullParser(this, city);
-
-			stationList = parser.parse();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
 
 	private void updateStationSpinner(ArrayList<String> list) {
 		StationAdapter adapter = new StationAdapter(this,
-				R.layout.spinner_item, list);
-		stationSpinner.setAdapter(adapter);
+				R.layout.stations_item, list);
+		//stationSpinner.setAdapter(adapter);
+		stationListView.setAdapter(adapter);
 	}
+	
+	/**
+	 * Starts an AsyncTask for parsing the list of stations.
+	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
+	 * @author David
+	 *
+	 */
+	private class StationParserTask extends AsyncTask<String, Void, StationList> {
+
+		private final ProgressDialog progressDialog = new ProgressDialog(BlueSkyActivity.this);
+		private StationPullParser parser;
+
+		
+		protected void onPreExecute() {
+			this.progressDialog.setMessage("Getting Stations...");
+			this.progressDialog.setIndeterminate(true);
+			this.progressDialog.setCancelable(true);
+			this.progressDialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					if(parser != null) {
+						parser.stopParse();
+					}
+					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
+					cancel(true);
+				}
+	    	});
+			
+			this.progressDialog.show();
+		}
+		
+		protected StationList doInBackground(String... params) {
+			// Try creating the parser
+			try {
+				parser = new StationPullParser(BlueSkyActivity.this, params[0]);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return new StationList();
+			}
+			
+			// Parse the stations
+			return parser.parse();
+		}
+		
+		protected void onPostExecute(StationList result) {
+			// Update stations with result
+			BlueSkyActivity.this.stationList = result;
+			BlueSkyActivity.this.stations = stationList.getStationNamesList();
+
+			// Update the station spinner with list of PWS stations
+			updateStationSpinner(stations);
+			
+			// Close the dialog
+			if(this.progressDialog.isShowing()) {
+				this.progressDialog.dismiss();
+			}
+		}
+	};
+	
+	/**
+	 * Starts an AsyncTask for parsing the weather.
+	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
+	 * @author David
+	 *
+	 */
+	private class WeatherParserTask extends AsyncTask<WeatherStation, Void, WeatherStation> {
+
+		private final ProgressDialog progressDialog = new ProgressDialog(BlueSkyActivity.this);
+		private WeatherPullParser parser;
+
+		
+		protected void onPreExecute() {
+			this.progressDialog.setMessage("Getting Weather...");
+			this.progressDialog.setIndeterminate(true);
+			this.progressDialog.setCancelable(true);
+			this.progressDialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					if(parser != null) {
+						parser.stopParse();
+					}
+					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
+					cancel(true);
+				}
+	    	});
+			
+			this.progressDialog.show();
+		}
+		
+		protected WeatherStation doInBackground(WeatherStation... params) {
+			// Try creating the parser
+			try {
+				parser = new WeatherPullParser(BlueSkyActivity.this, params[0]);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+				return new WeatherStation();
+			}
+			
+			// Parse the stations
+			return parser.parse();
+		}
+		
+		protected void onPostExecute(WeatherStation result) {
+			// Update station with result
+			currentStation = result;
+			
+			updateWeather(currentStation);
+			
+			// Close the dialog
+			if(this.progressDialog.isShowing()) {
+				this.progressDialog.dismiss();
+			}
+		}
+	};
 
 	/**
 	 * Custom Adapter class for stationSpinner.
@@ -249,11 +363,11 @@ public class BlueSkyActivity extends TabActivity {
 		public View getCustomView(int position, View convertView,
 				ViewGroup parent) {
 			LayoutInflater inflater = getLayoutInflater();
-			View row = inflater.inflate(R.layout.spinner_item, parent, false);
-			TextView label = (TextView) row.findViewById(R.id.spinner_text);
+			View row = inflater.inflate(R.layout.stations_item, parent, false);
+			TextView label = (TextView) row.findViewById(R.id.station_text);
 			label.setText(stations.get(position));
 
-			ImageView icon = (ImageView) row.findViewById(R.id.spinner_icon);
+			ImageView icon = (ImageView) row.findViewById(R.id.station_icon);
 
 			// Pick which icon to use
 			if(stationList.getStationType(position) == WeatherStation.StationType.AIRPORT) {

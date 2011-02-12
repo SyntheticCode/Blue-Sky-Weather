@@ -12,7 +12,7 @@
 		android:layout_height="fill_parent"
 		android:stretchColumns="1">
 
-
+<!-- 
 		<TableRow>
 			<Spinner
 				android:id="@+id/weather_stationSpinner"
@@ -21,6 +21,7 @@
 				android:layout_span="3" 
 				android:layout_gravity="fill_horizontal" />
 		</TableRow>
+		 -->
 		<TableRow>
 			<TextView
 				android:id="@+id/weather_updateTime"

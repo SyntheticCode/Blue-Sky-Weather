@@ -7,6 +7,7 @@ import java.net.URL;
 public abstract class BaseFeedParser {
 	
 	private final URL feedUrl;
+	protected boolean abort;
 
 	protected BaseFeedParser(String feedUrl){
 		try {
@@ -14,6 +15,8 @@ public abstract class BaseFeedParser {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
+		
+		abort = false;
 	}
 
 	protected InputStream getInputStream() {
@@ -25,4 +28,8 @@ public abstract class BaseFeedParser {
 	}
 	
 	public abstract Object parse(); 
+	
+	public void stopParse() {
+		abort = true;
+	}
 }
