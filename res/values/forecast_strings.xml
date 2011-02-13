@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="forecast_chanceflurries">Chance of Flurries</string>
+	<string name="forecast_chancerain">Chance of Rain</string>
+	<string name="forecast_chancesleet">Chance of Sleet</string>
+	<string name="forecast_chancesnow">Chance of Snow</string>
+	<string name="forecast_chancetstorms">Chance of Thunderstorms</string>
+	<string name="forecast_clear">Clear</string>
+	<string name="forecast_cloudy">Cloudy</string>
+	<string name="forecast_flurries">Flurries</string>
+	<string name="forecast_fog">Fog</string>
+	<string name="forecast_hazy">Haze</string>
+	<string name="forecast_mostlycloudy">Mostly Cloudy</string>
+	<string name="forecast_mostlysunny">Mostly Sunny</string>
+	<string name="forecast_partlycloudy">Partly Cloudy</string>
+	<string name="forecast_partlysunny">Partly Sunny</string>
+	<string name="forecast_rain">Rain</string>
+	<string name="forecast_sleet">Sleet</string>
+	<string name="forecast_snow">Snow</string>
+	<string name="forecast_sunny">Sunny</string>
+	<string name="forecast_tstorms">Thunderstorms</string>
+	<string name="forecast_tstorm">Thunderstorm</string>
+	<string name="forecast_unknown">Unknown</string>
+</resources>

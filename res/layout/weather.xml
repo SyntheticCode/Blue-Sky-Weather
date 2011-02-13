@@ -6,45 +6,102 @@
 	android:id="@+id/tabWeatherLayout"
 	android:orientation="vertical">
 
+	<!-- 2 column table -->
 	<TableLayout
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:stretchColumns="1">
 
-<!-- 
-		<TableRow>
-			<Spinner
-				android:id="@+id/weather_stationSpinner"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content" 
-				android:layout_span="3" 
-				android:layout_gravity="fill_horizontal" />
+		<!-- Condition & Temperature -->
+		 <TableRow>
+		 	<TextView
+		 		style="@style/ConditionTemperature"
+		 		android:id="@+id/weather_condition" />
+			<TextView
+				style="@style/ConditionTemperature"
+				android:id="@+id/weather_temperture" />
 		</TableRow>
-		 -->
+		<!-- Time -->
 		<TableRow>
 			<TextView
-				android:id="@+id/weather_updateTime"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:text="Time"
-				android:textSize="16sp" />
+				style="@style/WeatherTime"
+				android:text="@string/weather_label_time" />
+			<TextView
+				style="@style/WeatherTime"
+				android:id="@+id/weather_updateTime" />
 		</TableRow>
+		<!-- Wind Speed -->
 		<TableRow>
 			<TextView
-				android:id="@+id/weather_temp"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:text="Temperature"
-				android:textSize="24sp" />
+				style="@style/WeatherText"
+				android:text="@string/weather_label_wind_speed" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_wind" />
 		</TableRow>
+		<!-- Wind Gust -->
 		<TableRow>
 			<TextView
-				android:id="@+id/weather_wind"
-				android:layout_width="fill_parent"
-				android:layout_height="wrap_content"
-				android:text="Wind"
-				android:textSize="24sp" />
+				style="@style/WeatherText"
+				android:text="@string/weather_label_wind_gust" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_wind_gust" />
+		</TableRow>
+		<!-- Pressure -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_pressure" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_pressure" />
+		</TableRow>
+		<!-- Humidity -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_humidity" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_humidity" />
+		</TableRow>
+		<!-- Visibility -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_visibility" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_visibility" />
+		</TableRow>
+		<!-- Rainfall -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_rainfall" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_rainfall" />
+		</TableRow>
+		<!-- Dew Point -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_dew" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_dew" />
+		</TableRow>
+		<!-- UV Index -->
+		<TableRow>
+			<TextView
+				style="@style/WeatherText"
+				android:text="@string/weather_label_uv" />
+			<TextView
+				style="@style/WeatherText"
+				android:id="@+id/weather_uv" />
 		</TableRow>
 
 	</TableLayout>

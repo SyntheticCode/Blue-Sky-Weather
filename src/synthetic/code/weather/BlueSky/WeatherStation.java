@@ -1,5 +1,15 @@
 package synthetic.code.weather.BlueSky;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import org.xmlpull.v1.XmlPullParser;
+
+import synthetic.code.weather.BlueSky.parsers.BaseFeedParser;
+import android.content.Context;
+import android.util.Log;
+import android.util.Xml;
+
 public class WeatherStation {
 	public enum StationType {
 		AIRPORT, PWS, GENERIC
@@ -15,7 +25,7 @@ public class WeatherStation {
 	private float		lat;
 	private float		lon;
 	private int			elevation;
-	private WeatherData	weather;
+	//private WeatherData	weather;
 	
 	// PWS station data
 	private String	url;
@@ -23,6 +33,9 @@ public class WeatherStation {
 	private String	name; // <neighborhood> in XML
 	private short	distanceKm;
 	private short	distanceMi;
+	
+	private WeatherPullParser weatherParser;
+	private boolean firstParce;
 	
 	public WeatherStation(StationType stationType) {
 		this.type = stationType;
@@ -33,13 +46,14 @@ public class WeatherStation {
 		this.lat = 0;
 		this.lon = 0;
 		this.elevation = 0;
-		this.weather = new WeatherData();
+		//this.weather = new WeatherData();
 		//this.airportCode = "";
 		this.url = "";
 		this.stationID = "";
 		this.name = "";
 		this.distanceKm = 0;
 		this.distanceMi = 0;
+		firstParce = true;
 	}
 	
 	public WeatherStation() {
@@ -49,6 +63,23 @@ public class WeatherStation {
 	// Check if object is empty (null)
 	public boolean empty() {
 		return this.empty;
+	}
+	
+	public String getStationTitle() {
+		String title;
+		if(this.type == StationType.AIRPORT) {
+			title = this.city + ", ";
+			title += this.state + ", (";
+			title += this.stationID + ")";
+		}
+		else if(this.type == StationType.PWS){
+			title = this.name;
+		}
+		else {
+			title = "Error";
+		}
+		
+		return title;
 	}
 	
 	/* Getters and Setters */
@@ -125,13 +156,6 @@ public class WeatherStation {
 	public int getElevation() {
 		return elevation;
 	}
-	public void setWeather(WeatherData weather) {
-		this.empty = false;
-		this.weather = weather;
-	}
-	public WeatherData getWeather() {
-		return weather;
-	}
 	public void setUrl(String url) {
 		this.empty = false;
 		this.url = url.trim();
@@ -181,5 +205,189 @@ public class WeatherStation {
 	public short getDistance(boolean metric) {
 		if(metric) return this.distanceKm;
 		else return this.distanceMi;
+	}
+	
+	public WeatherData parseWeather(Context parentContext) throws UnsupportedEncodingException {
+		weatherParser = new WeatherPullParser(parentContext);
+		
+		// For the first parse of this station also get station data
+		weatherParser.setupParse(!this.firstParce);
+		
+		this.firstParce = false;
+		
+		return weatherParser.parse();
+	}
+	
+	public void stopWeatherParse() {
+		if(weatherParser != null) {
+			weatherParser.stopParse();
+		}
+	}
+	
+	/**
+	 * Selects the url that to use based on the station type. Note that this function
+	 * has to be called with in a context that is aware of "R".
+	 * @param type : Type of weather station to parse.
+	 * @return R.string.wui_* number for the station type.
+	 */
+	private static int urlSelector(WeatherStation.StationType type) {
+		if(type == WeatherStation.StationType.AIRPORT) {
+			return R.string.wui_airport;
+		}
+		else {
+			return R.string.wui_pws;
+		}
+	}
+	
+	private class WeatherPullParser extends BaseFeedParser {
+		
+		// Start of Personal Weather Station feed
+		//static final String STATION_START_TAG = "current_observation";
+		
+		// Station Info
+		static final String STATION_ID = "station_id";
+		static final String CITY = "city";
+		static final String STATE = "state";
+		static final String LATITUDE = "latitude";
+		static final String LONGITUDE = "longitude";
+		static final String ELEVATION = "elevation";
+		
+		// Weather Info
+		static final String TEMP_F = "temp_f";
+		static final String TEMP_C = "temp_c";
+		static final String TIME = "observation_time_rfc822"; // Time of weather update in GMT time
+		static final String WIND_DIRECTION = "wind_dir";
+		static final String WIND_SPEED = "wind_mph";
+		static final String WEATHER_CONDITION = "weather";
+		static final String WIND_GUST = "wind_gust_mph";
+		static final String HUMIDITY = "relative_humidity";
+		static final String RAINFALL_IN = "precip_today_in"; // inches
+		static final String PRESSURE_IN = "pressure_in"; // inches
+		static final String VISIBILITY_MI = "visibility_mi";
+		static final String DEW_POINT_F = "dewpoint_f";
+		static final String DEW_POINT_C = "dewpoint_c";
+		static final String UV_INDEX = "UV";
+		
+		private boolean weatherOnly;
+		
+		/**
+		 * Creator builds the XML feed url. Uses the calling Activity's context to get the string from resources.
+		 * It is important that station is already created and has an ID.
+		 * @param parentContext : Parent of this object (needs to have a context)
+		 * @throws UnsupportedEncodingException
+		 */
+		public WeatherPullParser(Context parentContext) throws UnsupportedEncodingException {
+			super(parentContext.getString(urlSelector(WeatherStation.this.getStationType())) + URLEncoder.encode(WeatherStation.this.getId()));
+			
+			//currentStation = station;
+			weatherOnly = false;
+		}
+		
+		
+		/**
+		 * Call this function to setup parse options.
+		 * @param parseOnlyWeather : Set to true to not parse station info.
+		 */
+		public void setupParse(boolean parseOnlyWeather) {
+			weatherOnly = parseOnlyWeather;
+		}
+		
+		public WeatherData parse() {
+			WeatherData currentWeather = new WeatherData();
+			
+			XmlPullParser parser = Xml.newPullParser();
+			try {
+				// auto-detect the encoding from the stream
+				parser.setInput(this.getInputStream(), null);
+				int eventType = parser.getEventType();
+				
+				boolean done = false;
+				while (eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
+					String name = null;
+					switch(eventType) {
+					case XmlPullParser.START_TAG:
+						name = parser.getName();
+						
+						// Don't need to parse station info every time
+						if(!weatherOnly) {
+							if(name.equalsIgnoreCase(STATION_ID)) {
+								WeatherStation.this.setId(parser.nextText());
+							}
+							else if(name.equalsIgnoreCase(CITY)) {
+								WeatherStation.this.setCity(parser.nextText());
+							}
+							else if(name.equalsIgnoreCase(STATE)) {
+								WeatherStation.this.setState(parser.nextText());
+							}
+							else if(name.equalsIgnoreCase(LATITUDE)) {
+								WeatherStation.this.setLatitude(parser.nextText());
+							}
+							else if(name.equalsIgnoreCase(LONGITUDE)) {
+								WeatherStation.this.setLongitude(parser.nextText());
+							}
+							else if(name.equalsIgnoreCase(ELEVATION)) {
+								WeatherStation.this.setElevation(cleanElevation(parser.nextText()));
+							}
+						}
+						
+						if(name.equalsIgnoreCase(TIME)) {
+							currentWeather.setTime(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(TEMP_F)) {
+							currentWeather.setTempF(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(TEMP_C)) {
+							currentWeather.setTempC(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(WIND_DIRECTION)) {
+							currentWeather.setWindDirection(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(WIND_SPEED)) {
+							currentWeather.setWindSpeed(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(WEATHER_CONDITION)) {
+							currentWeather.setWeatherCondition(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(WIND_GUST)) {
+							currentWeather.setWindGustMph(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(HUMIDITY)) {
+							currentWeather.setHumidity(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(RAINFALL_IN)) {
+							currentWeather.setRainfallInch(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(PRESSURE_IN)) {
+							currentWeather.setPressureInch(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(VISIBILITY_MI)) {
+							currentWeather.setVisibilityMile(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(DEW_POINT_F)) {
+							currentWeather.setDewF(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(UV_INDEX)) {
+							currentWeather.setUv(parser.nextText());
+						}
+						else if(name.equalsIgnoreCase(DEW_POINT_C)) {
+							currentWeather.setDewC(parser.nextText());
+						}
+						break;
+					}
+					eventType = parser.next();
+				}
+			} catch (Exception e) {
+				Log.e("WeatherWidget::WeatherPullParser", e.getMessage(), e);
+				throw new RuntimeException(e);
+			}
+			
+			
+			return currentWeather;
+		}
+		
+		private String cleanElevation(String elevation) {
+			// Elevation includes " ft" so remove it so string to int conversion works
+			return elevation.substring(0, elevation.length() - 3);
+		}
 	}
 }

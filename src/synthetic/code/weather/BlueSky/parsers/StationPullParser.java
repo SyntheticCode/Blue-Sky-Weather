@@ -70,8 +70,6 @@ public class StationPullParser extends BaseFeedParser {
 		abort = false;
 		currentStationList = new StationList();
 		
-		//Log.v("WeatherWidget::StationPullParser", "parse() Started");
-		
 		XmlPullParser parser = Xml.newPullParser();
 		try {
 			// auto-detect the encoding from the stream

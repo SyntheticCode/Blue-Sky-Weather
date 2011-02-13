@@ -3,4 +3,18 @@
     <string name="hello">Hello World, Weather!</string>
     <string name="app_name">Blue Sky</string>
     <string name="search_hint">Search City or Zip</string>
+    
+    <string name="menu_label_search">Search</string>
+    <string name="menu_label_refresh">Refresh</string>
+    
+    <string name="weather_label_time">Update Time</string>
+    <string name="weather_label_wind_speed">Wind</string>
+    <string name="weather_label_wind_gust">Gust</string>
+    <string name="weather_label_humidity">Humidity</string>
+    <string name="weather_label_rainfall">Rainfall</string>
+    <string name="weather_label_pressure">Pressure</string>
+    <string name="weather_label_visibility">Visibility</string>
+    <string name="weather_label_dew">Dew Point</string>
+    <string name="weather_label_uv">UV Index</string>
+    <string name="weather_label_pollen">Pollen</string>
 </resources>

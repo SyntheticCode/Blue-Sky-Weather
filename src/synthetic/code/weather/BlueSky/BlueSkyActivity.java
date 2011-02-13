@@ -8,7 +8,7 @@ import java.util.List;
 
 //import synthetic.code.weather.BlueSky.WeatherActivity.StationAdapter;
 import synthetic.code.weather.BlueSky.parsers.StationPullParser;
-import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
+//import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -38,22 +38,36 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class BlueSkyActivity extends TabActivity {
 	public static final int SEARCH_CITY = 1;
 	
-	private TabHost tabHost;
+	// Data
 	private StationList stationList;
-	private ArrayList<String> stations;
-	private WeatherStation currentStation;
-	private ListView stationListView;
-	//private Spinner stationSpinner;
+	private int currentStationIndex;
+	private WeatherData currentWeather;
+	
+	// GUI objects
+	private TabHost tabHost;
 	private TextView location;
+	// Station Tab
+	private ListView stationListView;
+	private TextView selectedStation;
+	// Weather Tab
 	private TextView updateTime;
 	private TextView temperature;
-	private TextView wind;
-
+	private TextView windSpeed;
+	private TextView weatherCondtion;
+	private TextView windGust;
+	private TextView humidity;
+	private TextView rainfall;
+	private TextView pressure;
+	private TextView visibility;
+	private TextView dewPoint;
+	private TextView uvIndex;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
@@ -87,12 +101,22 @@ public class BlueSkyActivity extends TabActivity {
 		
 		// Create class objects
 		stationList = new StationList();
-		stationListView = (ListView) findViewById(R.id.weatherStations_list);
-		//stationSpinner = (Spinner) findViewById(R.id.weather_stationSpinner);
 		location = (TextView) findViewById(R.id.weather_location);
+		// Station Tab objects
+		stationListView = (ListView) findViewById(R.id.weatherStations_list);
+		selectedStation = (TextView) findViewById(R.id.weatherStations_selected);
+		// Weather Tab objects
 		updateTime = (TextView) findViewById(R.id.weather_updateTime);
-		temperature = (TextView) findViewById(R.id.weather_temp);
-		wind = (TextView) findViewById(R.id.weather_wind);
+		temperature = (TextView) findViewById(R.id.weather_temperture);
+		windSpeed = (TextView) findViewById(R.id.weather_wind);
+		weatherCondtion = (TextView) findViewById(R.id.weather_condition);
+		windGust = (TextView) findViewById(R.id.weather_wind_gust);
+		humidity = (TextView) findViewById(R.id.weather_humidity);
+		rainfall = (TextView) findViewById(R.id.weather_rainfall);
+		pressure = (TextView) findViewById(R.id.weather_pressure);
+		visibility = (TextView) findViewById(R.id.weather_visibility);
+		dewPoint = (TextView) findViewById(R.id.weather_dew);
+		uvIndex = (TextView) findViewById(R.id.weather_uv);
 		
 		stationListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -126,6 +150,9 @@ public class BlueSkyActivity extends TabActivity {
 		switch (item.getItemId()) {
 		case R.id.menu_search:
 			onSearchRequested();
+			break;
+		case R.id.menu_refresh:
+			stationSelected(currentStationIndex);
 			break;
 		}
 		return true;
@@ -170,56 +197,62 @@ public class BlueSkyActivity extends TabActivity {
 	 * @param position : position in spinner of station
 	 */
 	protected void stationSelected(int position) {
-		// All airports are first in the list
-		//if(stationList.getStationType(position) == WeatherStation.StationType.AIRPORT) {
-		//	// parse airport
-		//}
-		//else if(stationList.getStationType(position) == WeatherStation.StationType.PWS) {
-		Log.v("sationSelected", "Position = " + position);
-		
-		// Get the selected station
-		currentStation = stationList.get(position);
-		Log.v("Station ID", currentStation.getId());
-		
-		// Make sure the station is not empty and there is a non empty id
-		if(!currentStation.empty() && (currentStation.getId() != "")) {
-			new WeatherParserTask().execute(currentStation);
+		// Make sure the position is valid
+		if(position >= 0 && position < stationList.size()) {
+			// Get the selected station
+			WeatherStation currentStation = stationList.get(position);
+			//Log.v("Station ID", currentStation.getId());
 			
-//			try {
-////				WeatherPullParser parser = new WeatherPullParser(this, currentStation);
-////				
-////				// Get only weather data for currentStation
-////				parser.setupParse(true);
-////				currentStation = parser.parse();
-//				
-////				updateWeather(currentStation);
-//			} catch (UnsupportedEncodingException e) {
-//				// TODO Auto-generated catch block
-//				Log.v("WeatherPullParser", "Parse failed [" + e + "]");
-//				e.printStackTrace();
-//			}
+			// Make sure the station is not empty and there is a non empty id
+			if(!currentStation.empty() && (currentStation.getId() != "")) {
+				// Update the current index
+				currentStationIndex = position;
+				
+				// Get the weather for the station
+				new WeatherParserTask().execute(currentStation);
+				
+				// Move to the weather tab
+				tabHost.setCurrentTab(0);
+			}
+			else {
+				// Warn user the station is corrupt
+				Toast.makeText(this, "Selected Station is Broken", Toast.LENGTH_LONG).show();
+			}
 		}
-			
-			tabHost.setCurrentTab(0);
-		//}
 	}
 	
 	/**
 	 * Update layout objects with current weather info.
-	 * @param station : station to get weather info from.
 	 */
-	private void updateWeather(WeatherStation station) {
-		updateTime.setText(station.getWeather().getTime());
-		temperature.setText(station.getWeather().getTempF() + "°F");
-		wind.setText(station.getWeather().getWindDirection() + " " + station.getWeather().getWindSpeed() + "mph");
+	private void displayWeather() {
+		updateTime.setText(currentWeather.getTime());
+		temperature.setText(currentWeather.getTempFString());
+		weatherCondtion.setText(currentWeather.getWeatherCondition());
+		windSpeed.setText(currentWeather.getWindDirSpeedString());
+		weatherCondtion.setText(currentWeather.getWeatherCondition());
+		windGust.setText(currentWeather.getWindGustMphString());
+		humidity.setText(currentWeather.getHumidityString());
+		rainfall.setText(currentWeather.getRainfallInchString());
+		pressure.setText(currentWeather.getPressureInchString());
+		visibility.setText(currentWeather.getVisibilityMileString());
+		dewPoint.setText(currentWeather.getDewFString());
+		uvIndex.setText(currentWeather.getUvString());
 	}
 
 
-	private void updateStationSpinner(ArrayList<String> list) {
-		StationAdapter adapter = new StationAdapter(this,
-				R.layout.stations_item, list);
-		//stationSpinner.setAdapter(adapter);
+	private void updateStationList(ArrayList<String> list) {
+		StationAdapter adapter = new StationAdapter(this, R.layout.stations_item, list);
 		stationListView.setAdapter(adapter);
+		
+		if(list.size() != 0) {
+			int index = stationList.getFirstPws(); // Find the first PWS (defaulting to PWS)
+			if(index != -1) {
+				stationSelected(index);
+			}
+			else {
+				stationSelected(0);
+			}
+		}
 	}
 	
 	/**
@@ -268,10 +301,10 @@ public class BlueSkyActivity extends TabActivity {
 		protected void onPostExecute(StationList result) {
 			// Update stations with result
 			BlueSkyActivity.this.stationList = result;
-			BlueSkyActivity.this.stations = stationList.getStationNamesList();
+			ArrayList<String> stations = stationList.getStationNamesList();
 
 			// Update the station spinner with list of PWS stations
-			updateStationSpinner(stations);
+			updateStationList(stations);
 			
 			// Close the dialog
 			if(this.progressDialog.isShowing()) {
@@ -286,10 +319,11 @@ public class BlueSkyActivity extends TabActivity {
 	 * @author David
 	 *
 	 */
-	private class WeatherParserTask extends AsyncTask<WeatherStation, Void, WeatherStation> {
+	private class WeatherParserTask extends AsyncTask<WeatherStation, Void, WeatherData> {
 
 		private final ProgressDialog progressDialog = new ProgressDialog(BlueSkyActivity.this);
-		private WeatherPullParser parser;
+		//private WeatherPullParser parser;
+		private WeatherStation station;
 
 		
 		protected void onPreExecute() {
@@ -299,8 +333,8 @@ public class BlueSkyActivity extends TabActivity {
 			this.progressDialog.setOnCancelListener(new OnCancelListener() {
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					if(parser != null) {
-						parser.stopParse();
+					if(station != null) {
+						station.stopWeatherParse();
 					}
 					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
 					cancel(true);
@@ -310,24 +344,44 @@ public class BlueSkyActivity extends TabActivity {
 			this.progressDialog.show();
 		}
 		
-		protected WeatherStation doInBackground(WeatherStation... params) {
-			// Try creating the parser
+		protected WeatherData doInBackground(WeatherStation... params) {
+			station = params[0];
+			
+			WeatherData weather;
+			WeatherData extraWeather;
+			
+			//
 			try {
-				parser = new WeatherPullParser(BlueSkyActivity.this, params[0]);
+				weather = station.parseWeather(BlueSkyActivity.this);
+				
+				// Only get extra weather for PWS (data that airports are missing should not be filled in)
+				if(station.getStationType() == WeatherStation.StationType.PWS) {
+					int index = stationList.getFirstAirport();
+					// Airports have some information that weather stations don't so get weather from closes airport
+					if(index != -1) {
+						extraWeather = stationList.get(index).parseWeather(BlueSkyActivity.this);
+						weather.setWeatherCondition(extraWeather.getWeatherCondition());
+						weather.setVisibilityMile(extraWeather.getVisibilityMile());
+					}
+				}
+				
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
-				return new WeatherStation();
+				return new WeatherData();
 			}
 			
-			// Parse the stations
-			return parser.parse();
+			
+			return weather;
 		}
 		
-		protected void onPostExecute(WeatherStation result) {
+		protected void onPostExecute(WeatherData result) {
 			// Update station with result
-			currentStation = result;
+			currentWeather = result;
 			
-			updateWeather(currentStation);
+			displayWeather();
+			
+			// Change the selected station (wait for parse to get elevation)
+			selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " Elevation " + stationList.get(currentStationIndex).getElevation() + " ft");
 			
 			// Close the dialog
 			if(this.progressDialog.isShowing()) {
@@ -365,7 +419,7 @@ public class BlueSkyActivity extends TabActivity {
 			LayoutInflater inflater = getLayoutInflater();
 			View row = inflater.inflate(R.layout.stations_item, parent, false);
 			TextView label = (TextView) row.findViewById(R.id.station_text);
-			label.setText(stations.get(position));
+			label.setText(stationList.get(position).getStationTitle());
 
 			ImageView icon = (ImageView) row.findViewById(R.id.station_icon);
 
