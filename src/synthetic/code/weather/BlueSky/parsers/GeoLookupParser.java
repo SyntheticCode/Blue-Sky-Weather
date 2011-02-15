@@ -49,7 +49,7 @@ public class GeoLookupParser extends BaseFeedParser {
 	 * @return List of Cities that match location.
 	 */
 	@Override
-	public ArrayList<String> parse() {
+	public ArrayList<String> parse() throws RuntimeException {
 		ArrayList<String> cityList = null;
 		
 		XmlPullParser xml = Xml.newPullParser();
@@ -85,7 +85,7 @@ public class GeoLookupParser extends BaseFeedParser {
 		return cityList;
 	}
 	
-	ArrayList<String> parseList(XmlPullParser xml) {
+	ArrayList<String> parseList(XmlPullParser xml) throws RuntimeException {
 		ArrayList<String> cityList = new ArrayList<String>();
 		
 		try {
@@ -130,7 +130,7 @@ public class GeoLookupParser extends BaseFeedParser {
 		return cityList;
 	}
 	
-	ArrayList<String> parseSingle(XmlPullParser xml) {
+	ArrayList<String> parseSingle(XmlPullParser xml) throws RuntimeException {
 		ArrayList<String> cityList = new ArrayList<String>();
 		
 		try {

@@ -7,7 +7,7 @@
     <string name="menu_label_search">Search</string>
     <string name="menu_label_refresh">Refresh</string>
     
-    <string name="weather_label_time">Update Time</string>
+    <string name="weather_label_time">Update Time: </string>
     <string name="weather_label_wind_speed">Wind</string>
     <string name="weather_label_wind_gust">Gust</string>
     <string name="weather_label_humidity">Humidity</string>

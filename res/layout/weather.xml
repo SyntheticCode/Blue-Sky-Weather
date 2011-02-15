@@ -5,16 +5,40 @@
 	android:layout_height="fill_parent"
 	android:id="@+id/tabWeatherLayout"
 	android:orientation="vertical">
+	
+	<TextView
+		style="@style/Temperature"
+		android:id="@+id/weather_temperture" />
+	<TextView
+		android:layout_toRightOf="@id/weather_temperture"
+		android:layout_alignBottom="@id/weather_temperture"
+ 		style="@style/Condition"
+ 		android:id="@+id/weather_condition" />
+	
+
+	<TextView
+		android:layout_below="@id/weather_condition"
+		android:id="@+id/weather_updateTime_label"
+		style="@style/WeatherTime"
+		android:text="@string/weather_label_time" />
+	<TextView
+		android:layout_toRightOf="@id/weather_updateTime_label"
+		android:layout_alignTop="@id/weather_updateTime_label"
+		style="@style/WeatherTime"
+		android:id="@+id/weather_updateTime" />
+
 
 	<!-- 2 column table -->
 	<TableLayout
-		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_below="@id/weather_updateTime"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:stretchColumns="1">
 
 		<!-- Condition & Temperature -->
+		 <!--
 		 <TableRow>
+		  
 		 	<TextView
 		 		style="@style/ConditionTemperature"
 		 		android:id="@+id/weather_condition" />
@@ -22,7 +46,9 @@
 				style="@style/ConditionTemperature"
 				android:id="@+id/weather_temperture" />
 		</TableRow>
+		-->
 		<!-- Time -->
+		<!--  
 		<TableRow>
 			<TextView
 				style="@style/WeatherTime"
@@ -31,6 +57,7 @@
 				style="@style/WeatherTime"
 				android:id="@+id/weather_updateTime" />
 		</TableRow>
+		-->
 		<!-- Wind Speed -->
 		<TableRow>
 			<TextView

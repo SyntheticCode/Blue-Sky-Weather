@@ -48,7 +48,7 @@ public class SearchResultActivity extends ListActivity {
 	
 	public void showError() {
 		// Warn user and then cancel
-		Toast.makeText(this, "Parse Error", Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Network Error", Toast.LENGTH_LONG).show();
 		setResult(RESULT_CANCELED);
 		finish();
 	}
@@ -101,20 +101,27 @@ public class SearchResultActivity extends ListActivity {
 		}
 		
 		protected ArrayList<String> doInBackground(String... params) {
-			// Try creating the parser
+			ArrayList<String> list;
+			
+			// Try creating the parser and parsing the results
 			try {
 				parser = new GeoLookupParser(SearchResultActivity.this, params[0]);
-			} catch (UnsupportedEncodingException e) {
+				list = parser.parse();
+			} catch (Exception e) { // Catching all exceptions (don't care why it failed)
 				e.printStackTrace();
-				return new ArrayList<String>();
+				list = new ArrayList<String>();
 			}
 			
-			// Parse the stations
-			return parser.parse();
+			return list;
 		}
 		
 		protected void onPostExecute(ArrayList<String> result) {
-			showResults(result);
+			if(result.size() != 0) {
+				showResults(result);
+			}
+			else {
+				showError();
+			}
 			
 			// Close the dialog
 			if(this.progressDialog.isShowing()) {
