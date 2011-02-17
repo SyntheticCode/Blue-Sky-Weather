@@ -73,7 +73,7 @@ public class GeoLookupParser extends BaseFeedParser {
 						cityList = parseSingle(xml);
 					}
 					else if(tagName.equalsIgnoreCase(ERROR_TAG)) {
-						// TODO : Do something with the error title
+						Log.v("BlueSky", "GeoLookupParser: Error Tag found!");
 					}
 				}
 			}

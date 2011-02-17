@@ -19,7 +19,6 @@ import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
 
 public class SearchResultActivity extends ListActivity {
 	public static final String KEY_QUERY = "QUERY";
-	//String query;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -36,9 +35,9 @@ public class SearchResultActivity extends ListActivity {
 	
 	public void showResults(ArrayList<String> results) {
 		if(results != null) {
-			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
+				this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
 		}
-		else {
+		else { // if results == null then search could not find a city
 			// Warn user and then cancel
 			Toast.makeText(this, "No City Found", Toast.LENGTH_LONG).show();
 			setResult(RESULT_CANCELED);
@@ -81,6 +80,7 @@ public class SearchResultActivity extends ListActivity {
 		private final ProgressDialog progressDialog = new ProgressDialog(SearchResultActivity.this);
 		private GeoLookupParser parser;
 
+		private boolean noError;
 		
 		protected void onPreExecute() {
 			this.progressDialog.setMessage("Searching...");
@@ -101,22 +101,23 @@ public class SearchResultActivity extends ListActivity {
 		}
 		
 		protected ArrayList<String> doInBackground(String... params) {
-			ArrayList<String> list;
+			ArrayList<String> list = null;
 			
 			// Try creating the parser and parsing the results
 			try {
 				parser = new GeoLookupParser(SearchResultActivity.this, params[0]);
 				list = parser.parse();
+				noError = true;
 			} catch (Exception e) { // Catching all exceptions (don't care why it failed)
 				e.printStackTrace();
-				list = new ArrayList<String>();
+				noError = false;
 			}
 			
 			return list;
 		}
 		
 		protected void onPostExecute(ArrayList<String> result) {
-			if(result.size() != 0) {
+			if(noError) {
 				showResults(result);
 			}
 			else {

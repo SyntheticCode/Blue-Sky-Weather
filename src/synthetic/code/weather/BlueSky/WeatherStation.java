@@ -207,15 +207,23 @@ public class WeatherStation {
 		else return this.distanceMi;
 	}
 	
-	public WeatherData parseWeather(Context parentContext) throws UnsupportedEncodingException {
-		weatherParser = new WeatherPullParser(parentContext);
+	public WeatherData parseWeather(Context parentContext) throws RuntimeException {
+		WeatherData data = null;
 		
-		// For the first parse of this station also get station data
-		weatherParser.setupParse(!this.firstParce);
+		try {
+			weatherParser = new WeatherPullParser(parentContext);
+			
+			// For the first parse of this station also get station data
+			weatherParser.setupParse(!this.firstParce);
+			
+			this.firstParce = false;
+			
+			data = weatherParser.parse();
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
 		
-		this.firstParce = false;
-		
-		return weatherParser.parse();
+		return data;
 	}
 	
 	public void stopWeatherParse() {
@@ -292,7 +300,7 @@ public class WeatherStation {
 			weatherOnly = parseOnlyWeather;
 		}
 		
-		public WeatherData parse() {
+		public WeatherData parse() throws RuntimeException {
 			WeatherData currentWeather = new WeatherData();
 			
 			XmlPullParser parser = Xml.newPullParser();
@@ -377,7 +385,6 @@ public class WeatherStation {
 					eventType = parser.next();
 				}
 			} catch (Exception e) {
-				Log.e("WeatherWidget::WeatherPullParser", e.getMessage(), e);
 				throw new RuntimeException(e);
 			}
 			

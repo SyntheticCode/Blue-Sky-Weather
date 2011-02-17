@@ -286,25 +286,32 @@ public class BlueSkyActivity extends TabActivity {
 		}
 		
 		protected StationList doInBackground(String... params) {
-			// Try creating the parser
+			StationList list = null;
+			
+			// Try creating the parser and then parsing
 			try {
 				parser = new StationPullParser(BlueSkyActivity.this, params[0]);
+				list = parser.parse();
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
-				return new StationList();
 			}
 			
-			// Parse the stations
-			return parser.parse();
+			return list;
 		}
 		
 		protected void onPostExecute(StationList result) {
-			// Update stations with result
-			BlueSkyActivity.this.stationList = result;
-			ArrayList<String> stations = stationList.getStationNamesList();
-
-			// Update the station spinner with list of PWS stations
-			updateStationList(stations);
+			if(result != null) {
+				// Update stations with result
+				BlueSkyActivity.this.stationList = result;
+				ArrayList<String> stations = stationList.getStationNamesList();
+	
+				// Update the station spinner with list of PWS stations
+				updateStationList(stations);
+			}
+			else {
+				// Warn user
+				Toast.makeText(BlueSkyActivity.this, "Network Error", Toast.LENGTH_LONG).show();
+			}
 			
 			// Close the dialog
 			if(this.progressDialog.isShowing()) {
@@ -347,7 +354,7 @@ public class BlueSkyActivity extends TabActivity {
 		protected WeatherData doInBackground(WeatherStation... params) {
 			station = params[0];
 			
-			WeatherData weather;
+			WeatherData weather = null;
 			WeatherData extraWeather;
 			
 			//
@@ -365,9 +372,9 @@ public class BlueSkyActivity extends TabActivity {
 					}
 				}
 				
-			} catch (UnsupportedEncodingException e) {
+			} catch (RuntimeException e) {
 				e.printStackTrace();
-				return new WeatherData();
+				//return new WeatherData();
 			}
 			
 			
@@ -375,13 +382,19 @@ public class BlueSkyActivity extends TabActivity {
 		}
 		
 		protected void onPostExecute(WeatherData result) {
-			// Update station with result
-			currentWeather = result;
-			
-			displayWeather();
-			
-			// Change the selected station (wait for parse to get elevation)
-			selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " Elevation " + stationList.get(currentStationIndex).getElevation() + " ft");
+			if(result != null) {
+				// Update station with result
+				currentWeather = result;
+				
+				displayWeather();
+				
+				// Change the selected station (wait for parse to get elevation)
+				selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " Elevation " + stationList.get(currentStationIndex).getElevation() + " ft");
+			}
+			else {
+				// Warn user 
+				Toast.makeText(BlueSkyActivity.this, "Network Error", Toast.LENGTH_LONG).show();
+			}
 			
 			// Close the dialog
 			if(this.progressDialog.isShowing()) {

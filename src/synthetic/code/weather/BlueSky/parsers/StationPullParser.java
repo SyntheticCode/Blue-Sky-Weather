@@ -66,7 +66,7 @@ public class StationPullParser extends BaseFeedParser {
 	 * Gets XML data for a location and parses XML for list of all stations around that location.
 	 * @return StationList object with all of the stations for parsed location.
 	 */
-	public StationList parse() {
+	public StationList parse() throws RuntimeException {
 		abort = false;
 		currentStationList = new StationList();
 		
@@ -136,7 +136,6 @@ public class StationPullParser extends BaseFeedParser {
 				eventType = parser.next();
 			}
 		} catch (Exception e) {
-			//Log.e("WeatherWidget::StationPullParser", e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
 		
