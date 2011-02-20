@@ -168,7 +168,8 @@ public class ForecastParser extends BaseFeedParser {
 		// Make sure the index was parsed
 		if(index != -1) {
 			// Replace previous forecast day with this day
-			forecast.forecastShort.set(index, day);
+			//forecast.forecastShort.set(index, day);
+			forecast.forecastShort.add(day);
 		}
 		
 		// Returning parser is not necessary but it is more Java like
@@ -257,7 +258,8 @@ public class ForecastParser extends BaseFeedParser {
 		// Make sure the index was parsed
 		if(index != -1) {
 			// Replace previous forecast day with this day
-			forecast.forecastExtended.set(index, day);
+			//forecast.forecastExtended.set(index, day);
+			forecast.forecastExtended.add(day);
 		}
 		
 		// Returning parser is not necessary but it is more Java like

@@ -17,4 +17,7 @@
     <string name="weather_label_dew">Dew Point</string>
     <string name="weather_label_uv">UV Index</string>
     <string name="weather_label_pollen">Pollen</string>
+    
+    <string name="forecast_title_short">Forecast</string>
+    <string name="forecast_title_extended">5-Day</string>
 </resources>

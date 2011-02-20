@@ -45,13 +45,16 @@ public class ForecastData {
 	public ArrayList<ForecastDayExtended> forecastExtended;
 	
 	public ForecastData() {
-		// Create all the forecast days so set will work
-		for(int i = 0; i < forecastShortCount; i++) {
-			forecastShort.add(new ForecastDayShort());
-		}
-		for(int i = 0; i < forecastExtendedCount; i++) {
-			forecastExtended.add(new ForecastDayExtended());
-		}
+		forecastShort = new ArrayList<ForecastDayShort>(forecastShortCount);
+		forecastExtended = new ArrayList<ForecastDayExtended>(forecastExtendedCount);
+		
+//		// Create all the forecast days so set will work
+//		for(int i = 0; i < forecastShortCount; i++) {
+//			forecastShort.add(new ForecastDayShort());
+//		}
+//		for(int i = 0; i < forecastExtendedCount; i++) {
+//			forecastExtended.add(new ForecastDayExtended());
+//		}
 	}
 	
 	private static int convertIconToId(String icon) {
