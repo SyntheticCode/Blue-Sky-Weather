@@ -44,6 +44,8 @@ import android.widget.AdapterView.OnItemSelectedListener;
 
 public class BlueSkyActivity extends TabActivity {
 	public static final int SEARCH_CITY = 1;
+	private static final int FORECAST_SHORT_COUNT = 2;
+	private static final int FORECAST_EXTENDED_COUNT = 5;
 	
 	// Data
 	private StationList stationList;
@@ -71,13 +73,8 @@ public class BlueSkyActivity extends TabActivity {
 	private TextView dewPoint;
 	private TextView uvIndex;
 	// Forecast Tab
-	private ForecastShortView forecastShort1;
-	private ForecastShortView forecastShort2;
-	private ForecastExtendedView forecastExtended1;
-	private ForecastExtendedView forecastExtended2;
-	private ForecastExtendedView forecastExtended3;
-	private ForecastExtendedView forecastExtended4;
-	private ForecastExtendedView forecastExtended5;
+	private ArrayList<ForecastShortView> forecastShort;
+	private ArrayList<ForecastExtendedView> forecastExtended;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -129,13 +126,15 @@ public class BlueSkyActivity extends TabActivity {
 		dewPoint = (TextView) findViewById(R.id.weather_dew);
 		uvIndex = (TextView) findViewById(R.id.weather_uv);
 		// Forecast Tab objects
-		forecastShort1 = (ForecastShortView) findViewById(R.id.forecast_short_row1);
-		forecastShort2 = (ForecastShortView) findViewById(R.id.forecast_short_row2);
-		forecastExtended1 = (ForecastExtendedView) findViewById(R.id.forecast_extended_row1);
-		forecastExtended2 = (ForecastExtendedView) findViewById(R.id.forecast_extended_row2);
-		forecastExtended3 = (ForecastExtendedView) findViewById(R.id.forecast_extended_row3);
-		forecastExtended4 = (ForecastExtendedView) findViewById(R.id.forecast_extended_row4);
-		forecastExtended5 = (ForecastExtendedView) findViewById(R.id.forecast_extended_row5);
+		forecastShort = new ArrayList<ForecastShortView>();
+		forecastShort.add((ForecastShortView) findViewById(R.id.forecast_short_row1));
+		forecastShort.add((ForecastShortView) findViewById(R.id.forecast_short_row2));
+		forecastExtended = new ArrayList<ForecastExtendedView>();
+		forecastExtended.add((ForecastExtendedView) findViewById(R.id.forecast_extended_row1));
+		forecastExtended.add((ForecastExtendedView) findViewById(R.id.forecast_extended_row2));
+		forecastExtended.add((ForecastExtendedView) findViewById(R.id.forecast_extended_row3));
+		forecastExtended.add((ForecastExtendedView) findViewById(R.id.forecast_extended_row4));
+		forecastExtended.add((ForecastExtendedView) findViewById(R.id.forecast_extended_row5));
 		
 		
 		stationListView.setOnItemClickListener(new OnItemClickListener() {
@@ -276,38 +275,22 @@ public class BlueSkyActivity extends TabActivity {
 	
 	private void displayForecast() {
 		if(currentForecast.forecastShort.size() > 1 && currentForecast.forecastExtended.size() > 4) {
-			forecastShort1.icon.setImageResource(R.drawable.ic_airport);
-			forecastShort1.title.setText(currentForecast.forecastShort.get(0).getTitle());
-			forecastShort1.condition.setText(currentForecast.forecastShort.get(0).getForecast());
+			// Short Forecast display data
+			for(int i = 0; i < BlueSkyActivity.FORECAST_SHORT_COUNT; i++) {
+				forecastShort.get(i).icon.setImageResource(currentForecast.forecastShort.get(i).getIconId());
+				forecastShort.get(i).title.setText(currentForecast.forecastShort.get(i).getTitle());
+				forecastShort.get(i).condition.setText(currentForecast.forecastShort.get(i).getForecast());
+			}
 			
-			forecastShort2.icon.setImageResource(R.drawable.ic_pws);
-			forecastShort2.title.setText(currentForecast.forecastShort.get(1).getTitle());
-			forecastShort2.condition.setText(currentForecast.forecastShort.get(1).getForecast());
-			
-			forecastExtended1.icon.setImageResource(R.drawable.ic_airport);
-			forecastExtended1.title.setText(currentForecast.forecastExtended.get(0).getDateWeekday());
-			forecastExtended1.condition.setText(currentForecast.forecastExtended.get(0).getCondition());
-			forecastExtended1.temperature.setText(currentForecast.forecastExtended.get(0).getHigh_F());
-			
-			forecastExtended2.icon.setImageResource(R.drawable.ic_airport);
-			forecastExtended2.title.setText(currentForecast.forecastExtended.get(1).getDateWeekday());
-			forecastExtended2.condition.setText(currentForecast.forecastExtended.get(1).getCondition());
-			forecastExtended2.temperature.setText(currentForecast.forecastExtended.get(1).getHigh_F());
-			
-			forecastExtended3.icon.setImageResource(R.drawable.ic_airport);
-			forecastExtended3.title.setText(currentForecast.forecastExtended.get(2).getDateWeekday());
-			forecastExtended3.condition.setText(currentForecast.forecastExtended.get(2).getCondition());
-			forecastExtended3.temperature.setText(currentForecast.forecastExtended.get(2).getHigh_F());
-			
-			forecastExtended4.icon.setImageResource(R.drawable.ic_airport);
-			forecastExtended4.title.setText(currentForecast.forecastExtended.get(3).getDateWeekday());
-			forecastExtended4.condition.setText(currentForecast.forecastExtended.get(3).getCondition());
-			forecastExtended4.temperature.setText(currentForecast.forecastExtended.get(3).getHigh_F());
-			
-			forecastExtended5.icon.setImageResource(R.drawable.ic_airport);
-			forecastExtended5.title.setText(currentForecast.forecastExtended.get(4).getDateWeekday());
-			forecastExtended5.condition.setText(currentForecast.forecastExtended.get(4).getCondition());
-			forecastExtended5.temperature.setText(currentForecast.forecastExtended.get(4).getHigh_F());
+			// Extended Forecast display data
+			for(int i = 0; i < BlueSkyActivity.FORECAST_EXTENDED_COUNT; i++) {
+				forecastExtended.get(i).icon.setImageResource(currentForecast.forecastExtended.get(i).getIconId());
+				forecastExtended.get(i).title.setText(currentForecast.forecastExtended.get(i).getDateWeekday());
+				forecastExtended.get(i).condition.setText(currentForecast.forecastExtended.get(i).getCondition());
+				forecastExtended.get(i).temperatureHigh.setText(currentForecast.forecastExtended.get(i).getHigh_F());
+				forecastExtended.get(i).temperatureLow.setText(currentForecast.forecastExtended.get(i).getLow_F());
+				forecastExtended.get(i).temperatureUnit.setText(this.getString(R.string.unit_english_temperature));
+			}
 		}
 		else {
 			// Warn user
@@ -448,7 +431,7 @@ public class BlueSkyActivity extends TabActivity {
 				displayWeather();
 				
 				// Change the selected station (wait for parse to get elevation)
-				selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " Elevation " + stationList.get(currentStationIndex).getElevation() + " ft");
+				selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " (" + stationList.get(currentStationIndex).getElevation() + "ft)");
 				
 				// Start a forecast parse (if weather parse failed then don't parse forecast)
 				// TODO: Check if forecast should be updated or not

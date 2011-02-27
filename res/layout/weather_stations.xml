@@ -8,10 +8,20 @@
 	
 	<TextView
 		android:id="@+id/weatherStations_selected"
-		android:textSize="20sp"
+		style="@android:style/TextAppearance.Medium"
 		android:padding="3dip"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content" />
+		android:layout_height="wrap_content"
+		android:background="@drawable/shape_background_blue" />
+		
+		<!--  
+	<View
+		android:layout_below="@id/weatherStations_selected"
+		android:id="@+id/station_divider"
+		android:layout_height="2dip"
+		android:layout_width="fill_parent"
+		android:background="@color/blue_end" />
+		-->
 	
 	<ListView
 		android:layout_below="@id/weatherStations_selected"

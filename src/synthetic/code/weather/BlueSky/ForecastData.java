@@ -6,6 +6,8 @@ package synthetic.code.weather.BlueSky;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.util.Log;
+
 /**
  * @author David
  *
@@ -13,29 +15,28 @@ import java.util.HashMap;
 public class ForecastData {
 	private final static HashMap<String, Integer> iconHash = new HashMap<String, Integer>();
 	static {
-		// TODO Change from string id to icon id
-		// All Weather Underground icon names mapped display strings
-		iconHash.put("chanceflurries", R.string.forecast_chanceflurries);
-		iconHash.put("chancerain", R.string.forecast_chancerain);
-		iconHash.put("chancesleet", R.string.forecast_chancesleet);
-		iconHash.put("chancesnow", R.string.forecast_chancesnow);
-		iconHash.put("chancetstorms", R.string.forecast_chancetstorms);
-		iconHash.put("clear", R.string.forecast_clear);
-		iconHash.put("cloudy", R.string.forecast_cloudy);
-		iconHash.put("flurries", R.string.forecast_flurries);
-		iconHash.put("fog", R.string.forecast_fog);
-		iconHash.put("hazy", R.string.forecast_hazy);
-		iconHash.put("mostlycloudy", R.string.forecast_mostlycloudy);
-		iconHash.put("mostlysunny", R.string.forecast_mostlysunny);
-		iconHash.put("partlycloudy", R.string.forecast_partlycloudy);
-		iconHash.put("partlysunny", R.string.forecast_partlysunny);
-		iconHash.put("rain", R.string.forecast_rain);
-		iconHash.put("sleet", R.string.forecast_sleet);
-		iconHash.put("snow", R.string.forecast_snow);
-		iconHash.put("sunny", R.string.forecast_sunny);
-		iconHash.put("tstorms", R.string.forecast_tstorms);
-		iconHash.put("tstorm", R.string.forecast_tstorm);
-		iconHash.put("unknown", R.string.forecast_unknown);
+		// All Weather Underground icon names mapped to icons
+		iconHash.put("chanceflurries", R.drawable.ic_forecast_snow);
+		iconHash.put("chancerain", R.drawable.ic_forecast_rain);
+		iconHash.put("chancesleet", R.drawable.ic_forecast_snow);
+		iconHash.put("chancesnow", R.drawable.ic_forecast_snow);
+		iconHash.put("chancetstorms", R.drawable.ic_forecast_thunderstorm);
+		iconHash.put("clear", R.drawable.ic_forecast_clear);
+		iconHash.put("cloudy", R.drawable.ic_forecast_cloudy);
+		iconHash.put("flurries", R.drawable.ic_forecast_snow);
+		iconHash.put("fog", R.drawable.ic_forecast_fog);
+		iconHash.put("hazy", R.drawable.ic_forecast_fog); // ??
+		iconHash.put("mostlycloudy", R.drawable.ic_forecast_cloudy);
+		iconHash.put("mostlysunny", R.drawable.ic_forecast_partly_sunny);
+		iconHash.put("partlycloudy", R.drawable.ic_forecast_partly_sunny);
+		iconHash.put("partlysunny", R.drawable.ic_forecast_partly_sunny);
+		iconHash.put("rain", R.drawable.ic_forecast_rain);
+		iconHash.put("sleet", R.drawable.ic_forecast_snow);
+		iconHash.put("snow", R.drawable.ic_forecast_snow);
+		iconHash.put("sunny", R.drawable.ic_forecast_clear);
+		iconHash.put("tstorms", R.drawable.ic_forecast_thunderstorm);
+		iconHash.put("tstorm", R.drawable.ic_forecast_thunderstorm);
+		iconHash.put("unknown", R.drawable.ic_forecast_unknown);
 	}
 	
 	public final static int forecastShortCount = 5;
@@ -48,23 +49,21 @@ public class ForecastData {
 		forecastShort = new ArrayList<ForecastDayShort>(forecastShortCount);
 		forecastExtended = new ArrayList<ForecastDayExtended>(forecastExtendedCount);
 		
-//		// Create all the forecast days so set will work
-//		for(int i = 0; i < forecastShortCount; i++) {
-//			forecastShort.add(new ForecastDayShort());
-//		}
-//		for(int i = 0; i < forecastExtendedCount; i++) {
-//			forecastExtended.add(new ForecastDayExtended());
-//		}
 	}
 	
 	private static int convertIconToId(String icon) {
 		int id;
+		// If the icon has "nt_" (night) prefix then remove it
+		if(icon.contains("nt_")) {
+			icon = icon.substring(3);
+		}
 		// need to check for the key before getting the value
 		if(iconHash.containsKey(icon)) {
 			id = iconHash.get(icon);
 		}
 		else {
-			id = R.string.forecast_unknown;
+			Log.v("BlueSky", "Could not match " + icon + " to a forecast icon.");
+			id = R.drawable.ic_forecast_unknown;
 		}
 		return id;
 	}

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/tabForecastScoller"
+	android:id="@+id/tabForecastLayout"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:fillViewport="true">
+
 	<RelativeLayout
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
-		android:id="@+id/tabForecastLayout"
 		android:orientation="vertical">
 
 		<TextView
-			style="@style/ForecastTitle"
+			style="@style/ForecastHeader"
 			android:layout_width="fill_parent"
 			android:id="@+id/forecast_short_title"
-			android:text="@string/forecast_title_short" />
+			android:text="@string/forecast_title_short"
+			android:background="@drawable/shape_background_blue" />
 
 		<TableLayout
 			android:layout_below="@id/forecast_short_title"
@@ -36,11 +37,12 @@
 		</TableLayout>
 
 		<TextView
-			style="@style/ForecastTitle"
+			style="@style/ForecastHeader"
 			android:layout_below="@id/forecast_table_short"
 			android:layout_width="fill_parent"
 			android:id="@+id/forecast_extended_title"
-			android:text="@string/forecast_title_extended" />
+			android:text="@string/forecast_title_extended"
+			android:background="@drawable/shape_background_blue" />
 
 		<TableLayout
 			android:layout_below="@id/forecast_extended_title"
@@ -75,5 +77,7 @@
 			</TableRow>
 
 		</TableLayout>
+
 	</RelativeLayout>
+
 </ScrollView>

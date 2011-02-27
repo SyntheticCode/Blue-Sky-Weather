@@ -40,12 +40,6 @@
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:layout_width">wrap_content</item>
 		<item name="android:paddingLeft">3dip</item>
-		<!-- 
-		<item name="android:paddingTop">3dip</item>
-		<item name="android:paddingBottom">3dip</item>
-		<item name="android:paddingLeft">3dip</item>
-		<item name="android:paddingRight">20dip</item>
-		 -->
 	</style>
 	<style
 		name="WeatherText"
@@ -55,6 +49,16 @@
 		<item name="android:paddingBottom">3dip</item>
 		<item name="android:paddingLeft">3dip</item>
 		<item name="android:paddingRight">20dip</item>
+	</style>
+	<style
+		name="ForecastHeader"
+		parent="@android:style/TextAppearance.Medium">
+		<item name="android:textStyle">bold</item>
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:paddingTop">3dip</item>
+		<item name="android:paddingBottom">3dip</item>
+		<item name="android:paddingLeft">3dip</item>
+		<item name="android:paddingRight">3dip</item>
 	</style>
 	<style
 		name="ForecastTitle"
@@ -68,6 +72,16 @@
 	<style
 		name="ForecastText"
 		parent="@android:style/TextAppearance.Small">
+		<item name="android:layout_height">wrap_content</item>
+		<item name="android:paddingTop">3dip</item>
+		<item name="android:paddingBottom">3dip</item>
+		<item name="android:paddingLeft">3dip</item>
+		<item name="android:paddingRight">3dip</item>
+	</style>
+	<style
+		name="ForecastTextBold"
+		parent="@android:style/TextAppearance.Small">
+		<item name="android:textStyle">bold</item>
 		<item name="android:layout_height">wrap_content</item>
 		<item name="android:paddingTop">3dip</item>
 		<item name="android:paddingBottom">3dip</item>

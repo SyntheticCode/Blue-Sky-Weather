@@ -20,4 +20,8 @@
     
     <string name="forecast_title_short">Forecast</string>
     <string name="forecast_title_extended">5-Day</string>
+    <string name="forecast_temperature_divider">|</string>
+    
+    <string name="unit_english_temperature">°F</string>
+    <string name="unit_metric_temperature">°C</string>
 </resources>
