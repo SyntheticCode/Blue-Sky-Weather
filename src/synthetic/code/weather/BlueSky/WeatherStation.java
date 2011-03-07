@@ -10,7 +10,12 @@ import android.content.Context;
 import android.util.Log;
 import android.util.Xml;
 
-public class WeatherStation {
+public class WeatherStation implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3596685299006794648L;
+
 	public enum StationType {
 		AIRPORT, PWS, GENERIC
 	}
@@ -247,10 +252,15 @@ public class WeatherStation {
 		}
 	}
 	
-	private class WeatherPullParser extends BaseFeedParser {
+	private class WeatherPullParser extends BaseFeedParser implements java.io.Serializable {
 		
 		// Start of Personal Weather Station feed
 		//static final String STATION_START_TAG = "current_observation";
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6617193459947332306L;
 		
 		// Station Info
 		static final String STATION_ID = "station_id";

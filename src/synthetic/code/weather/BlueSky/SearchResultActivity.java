@@ -1,16 +1,18 @@
 package synthetic.code.weather.BlueSky;
 
 import java.util.ArrayList;
-import java.io.UnsupportedEncodingException;
 
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
@@ -19,6 +21,12 @@ import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
 
 public class SearchResultActivity extends ListActivity {
 	public static final String KEY_QUERY = "QUERY";
+	private static final String KEY_LIST = "LIST";
+	
+	private static final int DIALOG_SEARCHING = 0;
+	
+	private GeoLookupParserTask task = null;
+	private ArrayList<String> list = null;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -29,13 +37,78 @@ public class SearchResultActivity extends ListActivity {
 		// Get string entered in search box
 		String query = intent.getStringExtra(KEY_QUERY);
 		
-		new GeoLookupParserTask().execute(query);
+		task = (GeoLookupParserTask) getLastNonConfigurationInstance();
 		
+		if(task == null) {
+			task = new GeoLookupParserTask(this);
+			task.execute(query);
+		}
+		else {
+			// Task has already been created so re-attach it to the activity
+			task.attach(this);
+		}
+		
+		
+		if(savedInstanceState != null) {
+			// Redisplay results if screen was rotated and task is not running
+			if(task.getStatus() != AsyncTask.Status.RUNNING) {
+				showResults(savedInstanceState.getStringArrayList(KEY_LIST));
+			}
+		}
+	}
+	
+	
+	@Override
+	public Object onRetainNonConfigurationInstance() {
+		task.detach();
+
+		return(task);
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+		if(list != null) {
+			savedInstanceState.putStringArrayList(KEY_LIST, list);
+		}
+		
+		super.onSaveInstanceState(savedInstanceState);
+	}
+	
+	// Use the Activity to manage the dialog. If it is running and needs
+	// to be recreated (rotate) then the Activity will show it again.
+	// Only need to dismiss when task is done.
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		if(id == DIALOG_SEARCHING) {
+			return new ProgressDialog(this);
+		}
+		else {
+			return null;
+		}
+	}
+	
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog) {
+		if(id == DIALOG_SEARCHING) {
+			((ProgressDialog) dialog).setMessage("Searching...");
+			((ProgressDialog) dialog).setIndeterminate(true);
+			dialog.setCancelable(true);
+			dialog.setOnCancelListener(new OnCancelListener() {
+				@Override
+				public void onCancel(DialogInterface dialog) {
+					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
+					Log.v("BlueSky", "GeoLookupParser cancled = " + task.stopParsing());
+					
+					showResults(null); // "No City Found" will be displayed
+				}
+	    	});
+		}
 	}
 	
 	public void showResults(ArrayList<String> results) {
 		if(results != null) {
-				this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
+			this.list = results; // save results
+			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
 		}
 		else { // if results == null then search could not find a city
 			// Warn user and then cancel
@@ -75,29 +148,32 @@ public class SearchResultActivity extends ListActivity {
 	 * @author David
 	 *
 	 */
-	private class GeoLookupParserTask extends AsyncTask<String, Void, ArrayList<String>> {
-
-		private final ProgressDialog progressDialog = new ProgressDialog(SearchResultActivity.this);
+	static private class GeoLookupParserTask extends AsyncTask<String, Void, ArrayList<String>> {
+		SearchResultActivity parent = null;
+		Context appContext = null;
+		
 		private GeoLookupParser parser;
 
 		private boolean noError;
 		
-		protected void onPreExecute() {
-			this.progressDialog.setMessage("Searching...");
-			this.progressDialog.setIndeterminate(true);
-			this.progressDialog.setCancelable(true);
-			this.progressDialog.setOnCancelListener(new OnCancelListener() {
-				@Override
-				public void onCancel(DialogInterface dialog) {
-					if(parser != null) {
-						parser.stopParse();
-					}
-					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-					cancel(true);
-				}
-	    	});
+		public GeoLookupParserTask(SearchResultActivity activity) {
+			// Get the application context so that if the activity is destroyed
+			// while thread is running the context will not be null.
+			appContext = activity.getApplicationContext();
 			
-			this.progressDialog.show();
+			attach(activity);
+		}
+		
+		public void attach(SearchResultActivity activity) {
+			parent = activity;
+		}
+		
+		public void detach() {
+			parent = null;
+		}
+		
+		protected void onPreExecute() {
+			parent.showDialog(SearchResultActivity.DIALOG_SEARCHING);
 		}
 		
 		protected ArrayList<String> doInBackground(String... params) {
@@ -105,7 +181,7 @@ public class SearchResultActivity extends ListActivity {
 			
 			// Try creating the parser and parsing the results
 			try {
-				parser = new GeoLookupParser(SearchResultActivity.this, params[0]);
+				parser = new GeoLookupParser(appContext, params[0]);
 				list = parser.parse();
 				noError = true;
 			} catch (Exception e) { // Catching all exceptions (don't care why it failed)
@@ -118,16 +194,21 @@ public class SearchResultActivity extends ListActivity {
 		
 		protected void onPostExecute(ArrayList<String> result) {
 			if(noError) {
-				showResults(result);
+				parent.showResults(result);
 			}
 			else {
-				showError();
+				parent.showError();
 			}
 			
-			// Close the dialog
-			if(this.progressDialog.isShowing()) {
-				this.progressDialog.dismiss();
+			parent.dismissDialog(SearchResultActivity.DIALOG_SEARCHING);
+		}
+		
+		public boolean stopParsing() {
+			if(parser != null) {
+				parser.stopParse();
 			}
+			
+			return cancel(true);
 		}
 	};
 	

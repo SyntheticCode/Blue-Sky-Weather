@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 public abstract class BaseFeedParser {
 	
@@ -21,7 +22,10 @@ public abstract class BaseFeedParser {
 
 	protected InputStream getInputStream() {
 		try {
-			return feedUrl.openConnection().getInputStream();
+			URLConnection conn = feedUrl.openConnection();
+			conn.setConnectTimeout(20000); // 10s
+			conn.setReadTimeout(20000); // 10s
+			return conn.getInputStream();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

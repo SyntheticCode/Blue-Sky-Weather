@@ -9,7 +9,12 @@ import java.util.Date;
  * @author David
  *
  */
-public class WeatherData {
+public class WeatherData implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3648462160478571371L;
+	
 	final public String unitMph = 		"mph";
 	final public String unitF =			"°F";
 	final public String unitC =			"°C";

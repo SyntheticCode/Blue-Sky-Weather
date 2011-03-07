@@ -12,7 +12,12 @@ import android.util.Log;
  * @author David
  *
  */
-public class ForecastData {
+public class ForecastData implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2061267300188295025L;
+	
 	private final static HashMap<String, Integer> iconHash = new HashMap<String, Integer>();
 	static {
 		// All Weather Underground icon names mapped to icons
@@ -91,7 +96,12 @@ public class ForecastData {
 		return id;
 	}
 	
-	public class ForecastDayShort {
+	public class ForecastDayShort implements java.io.Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2560286931395495389L;
+		
 		private String title;
 		private String icon;
 		private String forecast;
@@ -118,7 +128,12 @@ public class ForecastData {
 		}
 	}
 	
-	public class ForecastDayExtended {
+	public class ForecastDayExtended implements java.io.Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4761682674571058997L;
+		
 		private String dateDay;
 		private String dateMonth;
 		private String dateWeekday;

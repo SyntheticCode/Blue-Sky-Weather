@@ -9,10 +9,17 @@ import java.util.ArrayList;
  * @author David
  * 
  */
-public class StationList {
+public class StationList implements java.io.Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6221839575480780054L;
+	
 	private ArrayList<WeatherStation> list;
+	//public int currentIndex;
 	
 	public StationList() {
+		//this.currentIndex = 0;
 		this.list = new ArrayList<WeatherStation>();
 	}
 	
@@ -33,13 +40,23 @@ public class StationList {
 	}
 	
 	public ArrayList<String> getStationNamesList() {
-		ArrayList<String> nameList = new ArrayList<String>();
+		ArrayList<String> nameList = new ArrayList<String>(list.size());
 		
 		for(int i = 0; i < this.list.size(); i++) {
 			nameList.add(this.list.get(i).getStationTitle());
 		}
 		
 		return nameList;
+	}
+	
+	public ArrayList<WeatherStation.StationType> getStationTypesList() {
+		ArrayList<WeatherStation.StationType> typeList = new ArrayList<WeatherStation.StationType>(list.size());
+		
+		for(int i = 0; i < this.list.size(); i++) {
+			typeList.add(this.list.get(i).getStationType());
+		}
+		
+		return typeList;
 	}
 	
 	public WeatherStation.StationType getStationType(int index) {
