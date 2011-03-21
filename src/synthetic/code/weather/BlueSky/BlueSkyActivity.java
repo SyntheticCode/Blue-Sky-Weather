@@ -1,89 +1,55 @@
 package synthetic.code.weather.BlueSky;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.StreamCorruptedException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-
-//import synthetic.code.weather.BlueSky.WeatherActivity.StationAdapter;
-import synthetic.code.weather.BlueSky.parsers.ForecastParser;
-import synthetic.code.weather.BlueSky.parsers.StationPullParser;
-//import synthetic.code.weather.BlueSky.parsers.WeatherPullParser;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.app.TabActivity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TabHost;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.OnItemSelectedListener;
+
 
 public class BlueSkyActivity extends TabActivity {
 	public static final int SEARCH_CITY = 1;
 	public static final int FORECAST_SHORT_COUNT = 2;
 	public static final int FORECAST_EXTENDED_COUNT = 5;
-	private static final String FILE_WEATHER_DATA_OBJECT = "weather_data";
-	private static final String FILE_FORECAST_DATA_OBJECT = "forecast_data";
-	private static final String FILE_STATION_DATA_OBJECT = "station_data";
 	
-	private static final int DIALOG_STATION_LOADING = 0;
-	private static final int DIALOG_WEATHER_LOADING = 1;
+	public static final int DIALOG_STATION_LOADING = 0;
+	public static final int DIALOG_WEATHER_LOADING = 1;
 	
 	// Preference Keys/Defaults
-	private static final String PREF_NAME = "activity_pref";
-	private static final String PREF_KEY_LOCATION = "location";
-	private static final String PREF_KEY_INDEX = "index";
-	private static final int PREF_DEFAUTL_INDEX = 0;
+	public static final String PREF_NAME = "activity_pref";
+	public static final String PREF_KEY_LOCATION = "CURRENT_LOCATION";
 	
 	// Data
-	private StationList stationList;
-	private WeatherData currentWeather;
-	private ForecastData currentForecast;
-	private boolean refreshStationList;
+	public StationList stationList;
+	public WeatherData currentWeather;
+	public ForecastData currentForecast;
+	public boolean refreshStationList;
 	
 	// Preferences
-	private String currentLocation;
-	private int currentStationIndex;
+	public String currentLocation;
+	public int currentStationIndex;
 	
 	// AsyncTasks
-	private WeatherParserTask weatherTask = null;
-	private ForecastParserTask forecastTask = null;
-	private StationParserTask stationTask = null;
+	public WeatherParserTask weatherTask = null;
+	public ForecastParserTask forecastTask = null;
+	public StationParserTask stationTask = null;
 	
-	private UiObjects ui;
+	public UiObjects ui;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -91,14 +57,6 @@ public class BlueSkyActivity extends TabActivity {
 		
 		// Create all UI objects and link them to the layout
 		ui = new UiObjects(this);
-		
-		SharedPreferences preferences = this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-		currentLocation = preferences.getString(PREF_KEY_LOCATION, null);
-		currentStationIndex = preferences.getInt(PREF_KEY_INDEX, PREF_DEFAUTL_INDEX);
-		
-		refreshStationList = true;
-		
-		stationList = new StationList();
 		
 		ui.stationListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -111,6 +69,7 @@ public class BlueSkyActivity extends TabActivity {
 		});
 		
 		SaveObjects save = (SaveObjects) getLastNonConfigurationInstance();
+		
 		
 		if(save != null) {
 			stationTask = save.stationParserTask;
@@ -129,65 +88,75 @@ public class BlueSkyActivity extends TabActivity {
 			}
 			
 			currentWeather = save.weatherData;
-			if(currentWeather != null) {
-				ui.updateWeatherTab(currentWeather);
-			}
-			
 			currentForecast = save.forecastData;
-			if(currentForecast != null) {
-				ui.updateForecastTab(currentForecast);
-			}
-			
 			stationList = save.stationList;
+			currentLocation = save.location;
+			
+			currentStationIndex = save.stationIndex;
+			// Make sure there are stations
 			if(stationList != null) {
-				ui.updateStationListView(stationList.getStationNamesList(), stationList.getStationTypesList());
+				// Make sure the index is valid
+				if(currentStationIndex >= 0 && currentStationIndex < stationList.size()) {
+					// Update the selected station
+					ui.updateSelectedStation(stationList.get(currentStationIndex).getStationTitle(), Integer.toString(stationList.get(currentStationIndex).getElevation()));
+				}
 			}
 		}
+		// If objects were not saved then create new objects and restore their data from the DB
+		else {
+			Log.v("BlueSky", "Restoring from DB");
+			
+			refreshStationList = true;
+			
+			SharedPreferences preferences = this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+			
+			currentLocation = preferences.getString(PREF_KEY_LOCATION, null);
+			
+			currentWeather = new WeatherData();
+			currentWeather.restoreData(preferences);
+		}
 		
-		//ui.loadState(savedInstanceState);
-		
-		
+		// If any of the objects were restored then update the UI
 		if(currentLocation != null) {
-			//restoreWeather();
+			ui.location.setText(currentLocation);
+		}
+		
+		if(currentWeather != null) {
+			ui.updateWeatherTab(currentWeather);
+		}
+		
+		if(currentForecast != null) {
+			ui.updateForecastTab(currentForecast);
 		}
 		else {
-			Log.v("BlueSky", "No Weather to restore");
+			ui.hideForecast("Refresh");
 		}
+		
+		if(stationList != null) {
+			ui.updateStationListView(stationList.getStationNamesList(), stationList.getStationTypesList());
+		}
+		else {
+			ui.hideWeatherStation("Refresh");
+		}
+		
 	}
 	
 	@Override
-	public void onPause() {
-		super.onPause();
+	public void onDestroy() {
+		super.onDestroy();
 		
-//		SharedPreferences preferences = this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-//		SharedPreferences.Editor editor = preferences.edit();
-//		editor.putString(PREF_KEY_LOCATION, currentLocation);
-//		editor.putInt(PREF_KEY_INDEX, currentStationIndex);
-//		editor.commit();
-//		
-//		try {
-//			FileOutputStream weatherFile = openFileOutput(FILE_WEATHER_DATA_OBJECT, Context.MODE_PRIVATE);
-//			ObjectOutputStream weatherObject = new ObjectOutputStream(weatherFile);
-//			weatherObject.writeObject(currentWeather);
-//			weatherFile.close();
-//			
-//			FileOutputStream forecastFile = openFileOutput(FILE_FORECAST_DATA_OBJECT, Context.MODE_PRIVATE);
-//			ObjectOutputStream forecastObject = new ObjectOutputStream(forecastFile);
-//			forecastObject.writeObject(currentForecast);
-//			forecastFile.close();
-//			
-////			FileOutputStream stationFile = openFileOutput(FILE_WEATHER_DATA_OBJECT, Context.MODE_PRIVATE);
-////			ObjectOutputStream stationObject = new ObjectOutputStream(stationFile);
-////			stationObject.writeObject(stationList);
-////			stationFile.close();
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		// Stop any running threads
+		if(stationTask != null) {
+			stationTask.stopParsing();
+		}
+		if(weatherTask != null) {
+			weatherTask.stopParsing();
+		}
+		if(forecastTask != null) {
+			forecastTask.stopParsing();
+		}
 	}
+
 	
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -200,9 +169,15 @@ public class BlueSkyActivity extends TabActivity {
 		SaveObjects save = new SaveObjects();
 		
 		// Detach all tasks from activity to prevent memory leaks
-		stationTask.detach();
-		weatherTask.detach();
-		forecastTask.detach();
+		if(stationTask != null) {
+			stationTask.detach();
+		}
+		if(weatherTask != null) {
+			weatherTask.detach();
+		}
+		if(forecastTask != null) {
+			forecastTask.detach();
+		}
 		
 		save.stationParserTask = stationTask;
 		save.weatherParserTask = weatherTask;
@@ -211,6 +186,9 @@ public class BlueSkyActivity extends TabActivity {
 		save.weatherData = currentWeather;
 		save.forecastData = currentForecast;
 		save.stationList = stationList;
+		
+		save.location = currentLocation;
+		save.stationIndex = currentStationIndex;
 
 		return(save);
 	}
@@ -236,15 +214,19 @@ public class BlueSkyActivity extends TabActivity {
 			onSearchRequested();
 			break;
 		case R.id.menu_refresh:
-			if(refreshStationList) {
-				if(currentLocation != null) {
+			if(currentLocation != null) {
+				// If the list of station is not valid the refresh it
+				if(stationList == null || refreshStationList) {
 					// Get the list of stations for the city (run in a thread)
 					stationTask = new StationParserTask(this);
 					stationTask.execute(currentLocation); // Weather will be refreshed
 				}
+				else {
+					stationSelected(currentStationIndex);
+				}
 			}
 			else {
-				stationSelected(currentStationIndex);
+				Toast.makeText(this, "Please Search for a City First", Toast.LENGTH_LONG).show();
 			}
 			break;
 		}
@@ -263,10 +245,14 @@ public class BlueSkyActivity extends TabActivity {
 				// Set the Location (city)
 				ui.location.setText(currentLocation);
 				
+				// Save location to DB
+				SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
+				editor.putString(PREF_KEY_LOCATION, currentLocation);
+				editor.commit();
+				
 				// Get the list of stations for the city (run in a thread)
 				stationTask = new StationParserTask(this);
 				stationTask.execute(currentLocation);
-				
 			}
 		}
 
@@ -330,74 +316,6 @@ public class BlueSkyActivity extends TabActivity {
 		}
 	}
 	
-	private void restoreWeather() {
-		Log.v("BlueSky", "Restoring Weather");
-		
-		boolean restoreError = false;
-		
-		// Restore objects from files
-		try {
-			// Restore Weather Data
-			FileInputStream weatherFile = openFileInput(FILE_WEATHER_DATA_OBJECT);
-			ObjectInputStream weatherObject = new ObjectInputStream(weatherFile);
-			Object oW = weatherObject.readObject();
-			weatherFile.close();
-			if(oW instanceof WeatherData) {
-				currentWeather = (WeatherData) oW;
-			}
-			else {
-				restoreError = true;
-			}
-			
-			// Restore Forecast Data
-			FileInputStream forecastFile = openFileInput(FILE_FORECAST_DATA_OBJECT);
-			ObjectInputStream forecastObject = new ObjectInputStream(forecastFile);
-			Object oF = forecastObject.readObject();
-			forecastFile.close();
-			if(oF instanceof ForecastData) {
-				currentForecast = (ForecastData) oF;
-			}
-			else {
-				restoreError = true;
-			}
-			
-//			// Restore Station Data
-//			FileInputStream stationFile = openFileInput(FILE_WEATHER_DATA_OBJECT);
-//			ObjectInputStream stationObject = new ObjectInputStream(stationFile);
-//			Object oS = stationObject.readObject();
-//			stationFile.close();
-//			if(oS instanceof StationList) {
-//				stationList = (StationList) oS;
-//			}
-//			else {
-//				restoreError = true;
-//			}
-		} catch (FileNotFoundException e) {
-			restoreError = true;
-			e.printStackTrace();
-		} catch (StreamCorruptedException e) {
-			restoreError = true;
-			e.printStackTrace();
-		} catch (IOException e) {
-			restoreError = true;
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			restoreError = true;
-			e.printStackTrace();
-		}
-		
-		Log.v("BlueSky", "restoreError = " + restoreError);
-		
-		if(!restoreError) {
-			// Set the Location (city)
-			ui.location.setText(currentLocation);
-			ui.updateWeatherTab(currentWeather);
-			ui.updateForecastTab(currentForecast);
-			//displayWeather();
-			//displayForecast();
-			//displayStations();
-		}
-	}
 	
 	/**
 	 * Updates the weather info for the selected station.
@@ -429,28 +347,10 @@ public class BlueSkyActivity extends TabActivity {
 		}
 	}
 	
-	/**
-	 * Update layout objects with current weather info.
-	 */
-//	private void displayWeather() {
-//		ui.updateTime.setText(currentWeather.getTime());
-//		ui.temperature.setText(currentWeather.getTempFString());
-//		ui.weatherCondtion.setText(currentWeather.getWeatherCondition());
-//		ui.windSpeed.setText(currentWeather.getWindDirSpeedString());
-//		ui.weatherCondtion.setText(currentWeather.getWeatherCondition());
-//		ui.windGust.setText(currentWeather.getWindGustMphString());
-//		ui.humidity.setText(currentWeather.getHumidityString());
-//		ui.rainfall.setText(currentWeather.getRainfallInchString());
-//		ui.pressure.setText(currentWeather.getPressureInchString());
-//		ui.visibility.setText(currentWeather.getVisibilityMileString());
-//		ui.dewPoint.setText(currentWeather.getDewFString());
-//		ui.uvIndex.setText(currentWeather.getUvString());
-//	}
 
 
-	private void updateStationList(ArrayList<String> list) {
-//		StationAdapter adapter = new StationAdapter(this, R.layout.stations_item, list);
-//		ui.stationListView.setAdapter(adapter);
+
+	public void updateStationList(ArrayList<String> list) {
 		
 		ui.updateStationListView(stationList.getStationNamesList(), stationList.getStationTypesList());
 		
@@ -465,348 +365,14 @@ public class BlueSkyActivity extends TabActivity {
 		}
 	}
 	
-//	private void displayStations() {
-//		StationAdapter adapter = new StationAdapter(this, R.layout.stations_item, stationList.getStationNamesList());
-//		ui.stationListView.setAdapter(adapter);
-//		ui.selectedStation.setText(stationList.get(currentStationIndex).getStationTitle() + " (" + stationList.get(currentStationIndex).getElevation() + "ft)");
-//	}
-	
-//	private void displayForecast() {
-//		if(currentForecast.forecastShort.size() > 1 && currentForecast.forecastExtended.size() > 4) {
-//			// Short Forecast display data
-//			for(int i = 0; i < BlueSkyActivity.FORECAST_SHORT_COUNT; i++) {
-//				ui.forecastShort.get(i).icon.setImageResource(currentForecast.forecastShort.get(i).getIconId());
-//				ui.forecastShort.get(i).title.setText(currentForecast.forecastShort.get(i).getTitle());
-//				ui.forecastShort.get(i).condition.setText(currentForecast.forecastShort.get(i).getForecast());
-//			}
-//			
-//			// Extended Forecast display data
-//			for(int i = 0; i < BlueSkyActivity.FORECAST_EXTENDED_COUNT; i++) {
-//				ui.forecastExtended.get(i).icon.setImageResource(currentForecast.forecastExtended.get(i).getIconId());
-//				ui.forecastExtended.get(i).title.setText(currentForecast.forecastExtended.get(i).getDateWeekday());
-//				ui.forecastExtended.get(i).condition.setText(currentForecast.forecastExtended.get(i).getCondition());
-//				ui.forecastExtended.get(i).temperatureHigh.setText(currentForecast.forecastExtended.get(i).getHigh_F());
-//				ui.forecastExtended.get(i).temperatureLow.setText(currentForecast.forecastExtended.get(i).getLow_F());
-//				ui.forecastExtended.get(i).temperatureUnit.setText(this.getString(R.string.unit_english_temperature));
-//			}
-//		}
-//		else {
-//			// Warn user
-//			Toast.makeText(BlueSkyActivity.this, "Forecast Data Error", Toast.LENGTH_LONG).show();
-//		}
-//	}
-	
-	/**
-	 * Starts an AsyncTask for parsing the list of stations.
-	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
-	 * @author David
-	 *
-	 */
-	static private class StationParserTask extends AsyncTask<String, Void, StationList> {
-		BlueSkyActivity parent = null;
-		Context appContext = null;
-
-		//private ProgressDialog progressDialog;// = new ProgressDialog(BlueSkyActivity.this);
-		private StationPullParser parser;
-
-		public StationParserTask(BlueSkyActivity activity) {
-			// Get the application context so that if the activity is destroyed
-			// while thread is running the context will not be null.
-			appContext = activity.getApplicationContext();
-			
-			attach(activity);
-		}
-		
-		public void attach(BlueSkyActivity activity) {
-			this.parent = activity;
-//			setupProgressDialog();
-//			
-//			// If re-attaching to a running task then show progressDialog again
-//			if(getStatus() == AsyncTask.Status.RUNNING) {
-//				this.progressDialog.show();
-//			}
-		}
-		
-		public void detach() {
-			this.parent = null;
-//			// Close progress dialog
-//			this.progressDialog.dismiss();
-//			this.progressDialog = null;
-		}
-		
-//		private void setupProgressDialog() {
-//			this.progressDialog = new ProgressDialog(parent);
-//			this.progressDialog.setMessage("Getting Stations...");
-//			this.progressDialog.setIndeterminate(true);
-//			this.progressDialog.setCancelable(true);
-//			this.progressDialog.setOnCancelListener(new OnCancelListener() {
-//				@Override
-//				public void onCancel(DialogInterface dialog) {
-//					if(parser != null) {
-//						parser.stopParse();
-//					}
-//					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-//					cancel(true);
-//				}
-//	    	});
-//		}
-		
-		protected void onPreExecute() {
-			parent.showDialog(BlueSkyActivity.DIALOG_STATION_LOADING);
-			//this.progressDialog.show();
-		}
-		
-		protected StationList doInBackground(String... params) {
-			StationList list = null;
-			
-			// Try creating the parser and then parsing
-			try {
-				parser = new StationPullParser(this.appContext, params[0]);
-				list = parser.parse();
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			
-			return list;
-		}
-		
-		protected void onPostExecute(StationList result) {
-			if(result != null) {
-				// Update stations with result
-				parent.stationList = result;
-				ArrayList<String> stations = parent.stationList.getStationNamesList();
-	
-				// Update the station spinner with list of PWS stations
-				parent.updateStationList(stations);
-			}
-			else {
-				// Warn user
-				Toast.makeText(parent, "Network Error", Toast.LENGTH_LONG).show();
-			}
-			
-			// Close the dialog
-			parent.dismissDialog(BlueSkyActivity.DIALOG_STATION_LOADING);
-//			if(this.progressDialog.isShowing()) {
-//				this.progressDialog.dismiss();
-//			}
-		}
-		
-		public boolean stopParsing() {
-			if(parser != null) {
-				parser.stopParse();
-			}
-			// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-			return cancel(true);
-		}
-	};
-	
-	/**
-	 * Starts an AsyncTask for parsing the weather.
-	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
-	 * @author David
-	 *
-	 */
-	static private class WeatherParserTask extends AsyncTask<WeatherStation, Void, WeatherData> {
-		BlueSkyActivity parent = null;
-		Context appContext = null;
-
-		//private ProgressDialog progressDialog;// = new ProgressDialog(BlueSkyActivity.this);
-		//private WeatherPullParser parser;
-		private WeatherStation station;
-		
-		public WeatherParserTask(BlueSkyActivity activity) {
-			// Get the application context so that if the activity is destroyed
-			// while thread is running the context will not be null.
-			appContext = activity.getApplicationContext();
-			
-			attach(activity);
-		}
-		
-		public void attach(BlueSkyActivity activity) {
-			this.parent = activity;
-			//setupProgressDialog();
-			
-//			// If re-attaching to a running task then show progressDialog again
-//			if(getStatus() == AsyncTask.Status.RUNNING) {
-//				this.progressDialog.show();
-//			}
-		}
-		
-		public void detach() {
-			this.parent = null;
-//			// Close progress dialog
-//			this.progressDialog.dismiss();
-//			this.progressDialog = null;
-		}
-		
-//		private void setupProgressDialog() {
-//			this.progressDialog = new ProgressDialog(parent);
-//			this.progressDialog.setMessage("Getting Weather...");
-//			this.progressDialog.setIndeterminate(true);
-//			this.progressDialog.setCancelable(true);
-//			this.progressDialog.setOnCancelListener(new OnCancelListener() {
-//				@Override
-//				public void onCancel(DialogInterface dialog) {
-//					if(station != null) {
-//						station.stopWeatherParse();
-//					}
-//					// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-//					cancel(true);
-//					
-//					// try this code
-//					dialog.dismiss();
-//				}
-//	    	});
-//		}
-		
-		protected void onPreExecute() {
-			parent.showDialog(BlueSkyActivity.DIALOG_WEATHER_LOADING);
-			//this.progressDialog.show();
-		}
-		
-		protected WeatherData doInBackground(WeatherStation... params) {
-			
-			station = params[0];
-			WeatherStation firstAirport = params[1];
-			
-			WeatherData weather = null;
-			WeatherData extraWeather;
-			
-			//
-			try {
-				weather = station.parseWeather(this.appContext);
-				
-				// Only get extra weather for PWS (data that airports are missing should not be filled in)
-				if(station.getStationType() == WeatherStation.StationType.PWS) {
-					//int index = stationList.getFirstAirport();
-					// Airports have some information that weather stations don't so get weather from closest airport
-					//if(index != -1) {
-					if(firstAirport != null) {
-						extraWeather = firstAirport.parseWeather(this.appContext);
-						weather.setWeatherCondition(extraWeather.getWeatherCondition());
-						weather.setVisibilityMile(extraWeather.getVisibilityMile());
-					}
-				}
-				
-			} catch (RuntimeException e) {
-				e.printStackTrace();
-				//return new WeatherData();
-			}
-			
-			
-			return weather;
-		}
-		
-		protected void onPostExecute(WeatherData result) {
-			if(result != null) {
-				// Update station with result
-				parent.currentWeather = result;
-				
-				parent.ui.updateWeatherTab(parent.currentWeather);
-				//displayWeather();
-				
-				// Change the selected station (wait for parse to get elevation)
-				parent.ui.selectedStation.setText(parent.stationList.get(parent.currentStationIndex).getStationTitle() + " (" + parent.stationList.get(parent.currentStationIndex).getElevation() + "ft)");
-				
-				// Start a forecast parse (if weather parse failed then don't parse forecast)
-				// TODO: Check if forecast should be updated or not
-				Log.v("BlueSky", "location = " + parent.currentLocation);
-				parent.forecastTask = new ForecastParserTask(parent);
-				parent.forecastTask.execute(parent.currentLocation);
-			}
-			else {
-				// Warn user 
-				Toast.makeText(parent, "Network Error", Toast.LENGTH_LONG).show();
-			}
-			
-			// Close the dialog
-			parent.dismissDialog(BlueSkyActivity.DIALOG_WEATHER_LOADING);
-//			if(this.progressDialog.isShowing()) {
-//				this.progressDialog.dismiss();
-//			}
-		}
-		
-		public boolean stopParsing() {
-			if(station != null) {
-				station.stopWeatherParse();
-			}
-			// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-			return cancel(true);
-		}
-	};
-	
-	
-	/**
-	 * Starts an AsyncTask for parsing the forecast.
-	 * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
-	 * @author David
-	 *
-	 */
-	static private class ForecastParserTask extends AsyncTask<String, Void, ForecastData> {
-		BlueSkyActivity parent = null;
-		Context appContext = null;
-		
-		private ForecastParser parser;
-		
-		public ForecastParserTask(BlueSkyActivity activity) {
-			// Get the application context so that if the activity is destroyed
-			// while thread is running the context will not be null.
-			appContext = activity.getApplicationContext();
-			
-			attach(activity);
-		}
-		
-		public void attach(BlueSkyActivity activity) {
-			this.parent = activity;
-		}
-		
-		public void detach() {
-			this.parent = null;
-		}
-		
-		protected ForecastData doInBackground(String... params) {
-			ForecastData forecast = null;
-			
-			// Try creating the parser and then parsing
-			try {
-				parser = new ForecastParser(appContext, params[0]);
-				forecast = parser.parse();
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-			
-			return forecast;
-		}
-		
-		protected void onPostExecute(ForecastData result) {
-			if(result != null) {
-				
-				parent.currentForecast = result;
-				
-				parent.ui.updateForecastTab(parent.currentForecast);
-				//displayForecast();
-			}
-			else {
-				// Warn user
-				Toast.makeText(parent, "Network Error", Toast.LENGTH_LONG).show();
-			}
-			
-		}
-		
-		public boolean stopParsing() {
-			if(parser != null) {
-				parser.stopParse();
-			}
-			// Cancel the AsyncTask (isCancled() needs to be checked during doInBackground())
-			return cancel(true);
-		}
-	};
-	
 	private class SaveObjects {
 		// Data
 		public StationList stationList = null;
 		public WeatherData weatherData = null;
 		public ForecastData forecastData = null;
+		
+		public String location = null;
+		public int stationIndex = -1;
 		
 		// AsyncTasks
 		public WeatherParserTask weatherParserTask = null;

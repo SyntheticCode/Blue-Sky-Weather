@@ -6,10 +6,18 @@
 	android:layout_height="fill_parent"
 	android:fillViewport="true">
 
+		
 	<RelativeLayout
+		android:id="@+id/forecastDataLayout"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:orientation="vertical">
+		
+		<TextView
+			style="@style/EmptyHeader"
+			android:layout_width="fill_parent"
+			android:visibility="invisible"
+			android:id="@+id/forecast_empty_title" />
 
 		<TextView
 			style="@style/ForecastHeader"
@@ -79,5 +87,6 @@
 		</TableLayout>
 
 	</RelativeLayout>
+		
 
 </ScrollView>

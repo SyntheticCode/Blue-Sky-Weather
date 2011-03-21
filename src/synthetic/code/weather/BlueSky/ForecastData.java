@@ -13,11 +13,7 @@ import android.util.Log;
  *
  * Note: Weather Underground repackages NWS data. So getting data from NWS may be faster.
  */
-public class ForecastData implements java.io.Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2061267300188295025L;
+public class ForecastData {
 	
 	public final static int forecastShortCount = 5;
 	public final static int forecastExtendedCount = 6;

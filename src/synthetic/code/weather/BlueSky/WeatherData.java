@@ -4,16 +4,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.content.SharedPreferences;
+import android.util.Log;
+
 /**
  * Object that holds weather data at a specific time.
  * @author David
  *
  */
-public class WeatherData implements java.io.Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3648462160478571371L;
+public class WeatherData {
 	
 	final public String unitMph = 		"mph";
 	final public String unitF =			"°F";
@@ -21,6 +20,21 @@ public class WeatherData implements java.io.Serializable {
 	final public String unitIn =		"in";
 	final public String unitMile =		"mile";
 	final public String unitPercent =	"%";
+	
+	final private String KEY_UPDATETIME			= "WEATHER_UPDATETIME";
+	final private String KEY_TEMP_F				= "WEATHER_TEMP_F";
+	final private String KEY_TEMP_C				= "WEATHER_TEMP_C";
+	final private String KEY_WINDDIRECTION		= "WEATHER_WINDDIRECTION";
+	final private String KEY_WIND_MPH			= "WEATHER_WIND_MPH";
+	final private String KEY_WINDGUST_MPH		= "WEATHER_WINDGUST_MPH";
+	final private String KEY_WEATHERCONDITION	= "WEATHER_WEATHERCONDITION";
+	final private String KEY_HUMIDITY			= "WEATHER_HUMIDITY";
+	final private String KEY_RAINFALL_IN		= "WEATHER_RAINFALL_IN";
+	final private String KEY_PRESSURE_IN		= "WEATHER_PRESSURE_IN";
+	final private String KEY_VISIBILITY_MI		= "WEATHER_VISIBILITY_MI";
+	final private String KEY_DEW_F				= "WEATHER_DEW_F";
+	final private String KEY_DEW_C				= "WEATHER_DEW_C";
+	final private String KEY_UV					= "WEATHER_UV";
 	
 	// Sun, 11 July 2010 22:47:9 GMT
 	final SimpleDateFormat FORMATTER = new SimpleDateFormat("EEE, dd MMMM yyyy HH:mm:ss z");
@@ -57,6 +71,49 @@ public class WeatherData implements java.io.Serializable {
 		this.dew_C = "";
 		this.uv = "";
 	}
+	
+	public void saveData(SharedPreferences pref) {
+		Log.v("BlueSky", "Saving WeatherData");
+		
+		SharedPreferences.Editor editor = pref.edit();
+		
+		editor.putString(KEY_UPDATETIME, this.updateTime);
+		editor.putString(KEY_TEMP_F, this.temp_F);
+		editor.putString(KEY_TEMP_C, this.temp_C);
+		editor.putString(KEY_WINDDIRECTION, this.windDirection);
+		editor.putString(KEY_WIND_MPH, this.wind_Mph);
+		editor.putString(KEY_WINDGUST_MPH, this.windGust_Mph);
+		editor.putString(KEY_WEATHERCONDITION, this.weatherCondition);
+		editor.putString(KEY_HUMIDITY, this.humidity);
+		editor.putString(KEY_RAINFALL_IN, this.rainfall_In);
+		editor.putString(KEY_PRESSURE_IN, this.pressure_In);
+		editor.putString(KEY_VISIBILITY_MI, this.visibility_Mi);
+		editor.putString(KEY_DEW_F, this.dew_F);
+		editor.putString(KEY_DEW_C, this.dew_C);
+		editor.putString(KEY_UV, this.uv);
+		
+		editor.commit();
+	}
+	
+	public void restoreData(SharedPreferences pref) {
+		Log.v("BlueSky", "Restoring WeatherData");
+		
+		this.updateTime = pref.getString(KEY_UPDATETIME, null);
+		this.temp_F = pref.getString(KEY_TEMP_F, null);
+		this.temp_C = pref.getString(KEY_TEMP_C, null);
+		this.windDirection = pref.getString(KEY_WINDDIRECTION, null);
+		this.wind_Mph = pref.getString(KEY_WIND_MPH, null);
+		this.windGust_Mph = pref.getString(KEY_WINDGUST_MPH, null);
+		this.weatherCondition = pref.getString(KEY_WEATHERCONDITION, null);
+		this.humidity = pref.getString(KEY_HUMIDITY, null);
+		this.rainfall_In = pref.getString(KEY_RAINFALL_IN, null);
+		this.pressure_In = pref.getString(KEY_PRESSURE_IN, null);
+		this.visibility_Mi = pref.getString(KEY_VISIBILITY_MI, null);
+		this.dew_F = pref.getString(KEY_DEW_F, null);
+		this.dew_C = pref.getString(KEY_DEW_C, null);
+		this.uv = pref.getString(KEY_UV, null);
+	}
+	
 
 	public void setTime(String time) {
 		try {

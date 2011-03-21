@@ -9,17 +9,11 @@ import java.util.ArrayList;
  * @author David
  * 
  */
-public class StationList implements java.io.Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6221839575480780054L;
+public class StationList {
 	
 	private ArrayList<WeatherStation> list;
-	//public int currentIndex;
 	
 	public StationList() {
-		//this.currentIndex = 0;
 		this.list = new ArrayList<WeatherStation>();
 	}
 	

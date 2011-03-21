@@ -11,13 +11,16 @@ import java.util.List;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TabHost;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -342,16 +345,81 @@ public class UiObjects {
 				this.forecastExtended.get(i).temperatureLow.setText(forecast.forecastExtended.get(i).getLow_F());
 				this.forecastExtended.get(i).temperatureUnit.setText(parent.getString(R.string.unit_english_temperature));
 			}
+			
+			showForecast();
 		}
 		else {
 			// Warn user
 			Toast.makeText(parent, "Forecast Data Error", Toast.LENGTH_LONG).show();
+			hideForecast("");
 		}
 	}
 	
 	public void updateStationListView(ArrayList<String> names, ArrayList<WeatherStation.StationType> types) {
 		StationAdapter adapter = new StationAdapter(parent, R.layout.stations_item, names, types);
 		this.stationListView.setAdapter(adapter);
+		
+		this.showWeatherStation();
+	}
+	
+	public void updateSelectedStation(String title, String elevation) {
+		this.selectedStation.setText(title + " (" + elevation + "ft)");
+	}
+	
+	public void hideForecast(String text) {
+		// Create all the forecast View objects
+		TextView headerShort = (TextView)parent.findViewById(R.id.forecast_short_title);
+		TableLayout tableShort = (TableLayout)parent.findViewById(R.id.forecast_table_short);
+		TextView headerExtended = (TextView)parent.findViewById(R.id.forecast_extended_title);
+		TableLayout tableExtended = (TableLayout)parent.findViewById(R.id.forecast_table_extended);
+		TextView forecastEmpty = (TextView)parent.findViewById(R.id.forecast_empty_title);
+		
+		// Hide the forecast objects
+		headerShort.setVisibility(View.GONE);
+		tableShort.setVisibility(View.GONE);
+		headerExtended.setVisibility(View.GONE);
+		tableExtended.setVisibility(View.GONE);
+		
+		// Show the empty text
+		forecastEmpty.setText(text);
+		forecastEmpty.setVisibility(View.VISIBLE);
+	}
+	
+	public void showForecast() {
+		// Create all the forecast View objects
+		TextView headerShort = (TextView)parent.findViewById(R.id.forecast_short_title);
+		TableLayout tableShort = (TableLayout)parent.findViewById(R.id.forecast_table_short);
+		TextView headerExtended = (TextView)parent.findViewById(R.id.forecast_extended_title);
+		TableLayout tableExtended = (TableLayout)parent.findViewById(R.id.forecast_table_extended);
+		TextView forecastEmpty = (TextView)parent.findViewById(R.id.forecast_empty_title);
+		
+		// Show the forecast objects
+		headerShort.setVisibility(View.VISIBLE);
+		tableShort.setVisibility(View.VISIBLE);
+		headerExtended.setVisibility(View.VISIBLE);
+		tableExtended.setVisibility(View.VISIBLE);
+		
+		// Hide the empty text
+		forecastEmpty.setVisibility(View.GONE);
+	}
+	
+	public void hideWeatherStation(String text) {
+		TextView stationEmpty = (TextView)parent.findViewById(R.id.weatherStations_empty_title);
+		
+		this.selectedStation.setVisibility(View.GONE);
+		this.stationListView.setVisibility(View.GONE);
+		
+		stationEmpty.setText(text);
+		stationEmpty.setVisibility(View.VISIBLE);
+	}
+	
+	public void showWeatherStation() {
+		TextView stationEmpty = (TextView)parent.findViewById(R.id.weatherStations_empty_title);
+		
+		this.selectedStation.setVisibility(View.VISIBLE);
+		this.stationListView.setVisibility(View.VISIBLE);
+		
+		stationEmpty.setVisibility(View.GONE);
 	}
 	
 	/**
