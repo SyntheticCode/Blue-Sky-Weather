@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with BlueSky.  If not, see <http://www.gnu.org/licenses/>.
  */
-package synthetic.code.weather.BlueSky;
+package com.SyntheticCode.BlueSkyWeather;
 
 import java.io.UnsupportedEncodingException;
 
-import synthetic.code.weather.BlueSky.parsers.ForecastParser;
+import com.SyntheticCode.BlueSkyWeather.parsers.ForecastParser;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;

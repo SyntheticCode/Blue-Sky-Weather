@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BlueSky.  If not, see <http://www.gnu.org/licenses/>.
  */
-package synthetic.code.weather.BlueSky.parsers;
+package com.SyntheticCode.BlueSkyWeather.parsers;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import synthetic.code.weather.BlueSky.R;
+import com.SyntheticCode.BlueSkyWeather.R;
 import android.util.Log;
 import android.util.Xml;
 import android.content.Context;

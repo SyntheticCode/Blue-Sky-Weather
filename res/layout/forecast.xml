@@ -34,11 +34,11 @@
 			android:shrinkColumns="*">
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastShortView
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
 					android:id="@+id/forecast_short_row1" />
 			</TableRow>
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastShortView
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
 					android:id="@+id/forecast_short_row2" />
 			</TableRow>
 
@@ -60,27 +60,27 @@
 			android:stretchColumns="1">
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastExtendedView
+				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
 					android:id="@+id/forecast_extended_row1" />
 			</TableRow>
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastExtendedView
+				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
 					android:id="@+id/forecast_extended_row2" />
 			</TableRow>
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastExtendedView
+				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
 					android:id="@+id/forecast_extended_row3" />
 			</TableRow>
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastExtendedView
+				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
 					android:id="@+id/forecast_extended_row4" />
 			</TableRow>
 
 			<TableRow>
-				<synthetic.code.weather.BlueSky.ForecastExtendedView
+				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
 					android:id="@+id/forecast_extended_row5" />
 			</TableRow>
 

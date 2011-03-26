@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BlueSky.  If not, see <http://www.gnu.org/licenses/>.
  */
-package synthetic.code.weather.BlueSky.parsers;
+package com.SyntheticCode.BlueSkyWeather.parsers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with BlueSky.  If not, see <http://www.gnu.org/licenses/>.
  */
-package synthetic.code.weather.BlueSky;
+package com.SyntheticCode.BlueSkyWeather;
 
 import java.util.ArrayList;
 
@@ -35,7 +35,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 
-import synthetic.code.weather.BlueSky.parsers.GeoLookupParser;
+import com.SyntheticCode.BlueSkyWeather.parsers.GeoLookupParser;
 
 public class SearchResultActivity extends ListActivity {
 	public static final String KEY_QUERY = "QUERY";
