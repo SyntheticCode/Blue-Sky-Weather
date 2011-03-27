@@ -51,6 +51,7 @@ public class BlueSkyActivity extends TabActivity {
 	// Preference Keys/Defaults
 	public static final String PREF_NAME = "activity_pref";
 	public static final String PREF_KEY_LOCATION = "CURRENT_LOCATION";
+	public static final String PREF_KEY_STATION = "CURRENT_STATION";
 	
 	// Data
 	public StationList stationList;
@@ -344,12 +345,17 @@ public class BlueSkyActivity extends TabActivity {
 		if(position >= 0 && position < stationList.size()) {
 			// Get the selected station
 			WeatherStation currentStation = stationList.get(position);
-			//Log.v("Station ID", currentStation.getId());
+			Log.v("BlueSky", "Station ID : " + currentStation.getId());
 			
 			// Make sure the station is not empty and there is a non empty id
 			if(!currentStation.empty() && (currentStation.getId() != "")) {
 				// Update the current index
 				currentStationIndex = position;
+				
+				// Save station name to preferences
+				SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
+				editor.putString(PREF_KEY_STATION, currentStation.getId());
+				editor.commit();
 				
 				// Get the weather for the station
 				weatherTask = new WeatherParserTask(this);
@@ -369,11 +375,25 @@ public class BlueSkyActivity extends TabActivity {
 
 
 	public void updateStationList(ArrayList<String> list) {
-		
+		// Reload the station tab
 		ui.updateStationListView(stationList.getStationNamesList(), stationList.getStationTypesList());
-		
+
+		// Select the station to get weather for
 		if(list.size() != 0) {
-			int index = stationList.getFirstPws(); // Find the first PWS (defaulting to PWS)
+			int index;
+			// If refreshing station list then load weather from previously selected station
+			if(refreshStationList) {
+				// Get ID of station from preferences
+				SharedPreferences preferences = this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+				String id = preferences.getString(PREF_KEY_STATION, null);
+				// Get the index of the station with this id
+				index = stationList.findById(id);
+			}
+			// Otherwise just get the first PWS
+			else {
+				index = stationList.getFirstPws(); // Find the first PWS (defaulting to PWS)
+			}
+			
 			if(index != -1) {
 				stationSelected(index);
 			}
@@ -381,6 +401,9 @@ public class BlueSkyActivity extends TabActivity {
 				stationSelected(0);
 			}
 		}
+		
+		// Make sure stations are not refreshed again
+		refreshStationList = false;
 	}
 	
 	private class SaveObjects {

@@ -27,6 +27,7 @@ import android.util.Log;
  * @author David
  *
  * Note: Weather Underground repackages NWS data. So getting data from NWS may be faster.
+ * NWS link : http://forecast.weather.gov/MapClick.php?lat=37.76834106&lon=-122.39418793&FcstType=dwml
  */
 public class ForecastData {
 	

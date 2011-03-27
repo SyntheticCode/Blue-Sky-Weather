@@ -20,6 +20,8 @@ package com.SyntheticCode.BlueSkyWeather;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 /**
  * @author David
  * 
@@ -85,6 +87,16 @@ public class StationList {
 			if(this.get(i).getStationType() == WeatherStation.StationType.PWS)
 				return i;
 		}
+		return -1;
+	}
+	
+	public int findById(String id) {
+		for(int i = 0; i < this.size(); i++) {
+			if(this.get(i).getId().equalsIgnoreCase(id)) {
+				return i;
+			}
+		}
+		
 		return -1;
 	}
 }
