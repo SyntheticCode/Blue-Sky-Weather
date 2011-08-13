@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.SyntheticCode.BlueSkyWeather.CityData;
 import com.SyntheticCode.BlueSkyWeather.R;
 import android.util.Log;
 import android.util.Xml;
@@ -44,7 +45,11 @@ public class GeoLookupParser extends BaseFeedParser {
 	static final String LOCATION_NAME_TAG = "name";
 	static final String LOCATION_CITY_TAG = "city";
 	static final String LOCATION_STATE_TAG = "state";
+	static final String LOCATION_COUNTRY_TAG = "country";
 	static final String LOCATION_TYPE_VALUE = "CITY";
+	static final String LOCATION_LAT_TAG = "lat";
+	static final String LOCATION_LON_TAG = "lon";
+	static final String LOCATION_ZIP_TAG = "zip";
 	static final String ERROR_TAG = "wui_error";
 	static final String ERROR_TITLE_TAG = "title";
 	
@@ -67,8 +72,8 @@ public class GeoLookupParser extends BaseFeedParser {
 	 * @return List of Cities that match location.
 	 */
 	@Override
-	public ArrayList<String> parse() throws RuntimeException {
-		ArrayList<String> cityList = null;
+	public ArrayList<CityData> parse() throws RuntimeException {
+		ArrayList<CityData> cityList = null;
 		
 		XmlPullParser xml = Xml.newPullParser();
 		try {
@@ -103,8 +108,8 @@ public class GeoLookupParser extends BaseFeedParser {
 		return cityList;
 	}
 	
-	ArrayList<String> parseList(XmlPullParser xml) throws RuntimeException {
-		ArrayList<String> cityList = new ArrayList<String>();
+	ArrayList<CityData> parseList(XmlPullParser xml) throws RuntimeException {
+		ArrayList<CityData> cityList = new ArrayList<CityData>();
 		
 		try {
 			int eventType = xml.getEventType();
@@ -125,9 +130,11 @@ public class GeoLookupParser extends BaseFeedParser {
 							atrValue = xml.getAttributeValue(null, LOCATION_TYPE_ATR);
 							skip = !atrValue.equalsIgnoreCase(LOCATION_TYPE_VALUE);
 						}
-						// If locations name tag is found and skip is not set then add name to list
+						// If locations name tag is found and skip is not set then add city to list
 						else if(tagName.equalsIgnoreCase(LOCATION_NAME_TAG) && !skip) {
-							cityList.add(xml.nextText());
+							CityData city = new CityData();
+							city.setCityState(xml.nextText());
+							cityList.add(city);
 						}
 						break;
 						
@@ -148,22 +155,23 @@ public class GeoLookupParser extends BaseFeedParser {
 		return cityList;
 	}
 	
-	ArrayList<String> parseSingle(XmlPullParser xml) throws RuntimeException {
-		ArrayList<String> cityList = new ArrayList<String>();
+	ArrayList<CityData> parseSingle(XmlPullParser xml) throws RuntimeException {
+		ArrayList<CityData> cityList = new ArrayList<CityData>();
 		
 		try {
 			int eventType = xml.getEventType();
 			boolean done = false;
 			String tagName = null;
 			String atrValue = null;
-			String cityValue = null;
-			String stateValue = null;
+			
+			CityData city = new CityData();
 			
 			while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 				
 				switch(eventType) {
 					case XmlPullParser.START_TAG:
 						tagName = xml.getName();
+						Log.v("BlueSky", "Geo Tag = " + tagName);
 						// Check type attribute of location
 						if(tagName.equalsIgnoreCase(LOCATION_TAG)) {
 							// Check the type attribute to make sure it matches valid value
@@ -175,27 +183,38 @@ public class GeoLookupParser extends BaseFeedParser {
 						}
 						// If locations city tag is found then save value
 						else if(tagName.equalsIgnoreCase(LOCATION_CITY_TAG)) {
-							cityValue = xml.nextText();
-							
-							// If state tag has already been parsed then stop
-							if(stateValue != null) done = true;
+							city.setCity(xml.nextText());
 						}
 						else if(tagName.equalsIgnoreCase(LOCATION_STATE_TAG)) {
-							stateValue = xml.nextText();
-							
-							// If city tag has already been parsed then stop
-							if(cityValue != null) done = true;
+							city.setState(xml.nextText());
+						}
+						else if(tagName.equalsIgnoreCase(LOCATION_COUNTRY_TAG)) {
+							city.setCountry(xml.nextText());
+						}
+						else if(tagName.equalsIgnoreCase(LOCATION_LAT_TAG)) {
+							city.setLat(xml.nextText());
+						}
+						else if(tagName.equalsIgnoreCase(LOCATION_LON_TAG)) {
+							city.setLon(xml.nextText());
+						}
+						else if(tagName.equalsIgnoreCase(LOCATION_ZIP_TAG)) {
+							city.setZip(xml.nextText());
 						}
 						break;
 						
 					case XmlPullParser.END_TAG:
 						break;
 				}
+				
+				if(city.infoComplete()) {
+					done = true;
+				}
+				
 				eventType = xml.next();
 			}
-			// If city and state were found then add them to the list
-			if((cityValue != null) && (stateValue != null)) {
-				cityList.add(cityValue + ", " + stateValue);
+			// If all city data was found then add it to the list
+			if(city.infoComplete()) {
+				cityList.add(city);
 			}
 			else {
 				// Return null if nothing was found

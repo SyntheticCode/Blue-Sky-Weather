@@ -19,20 +19,16 @@
 			android:visibility="invisible"
 			android:id="@+id/forecast_empty_title" />
 
-		<TextView
-			style="@style/ForecastHeader"
-			android:layout_width="fill_parent"
-			android:id="@+id/forecast_short_title"
-			android:text="@string/forecast_title_short"
-			android:background="@drawable/shape_background_blue" />
-
 		<TableLayout
-			android:layout_below="@id/forecast_short_title"
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"
 			android:id="@+id/forecast_table_short"
 			android:shrinkColumns="*">
-
+			 
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row0" />
+			</TableRow>
 			<TableRow>
 				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
 					android:id="@+id/forecast_short_row1" />
@@ -41,47 +37,49 @@
 				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
 					android:id="@+id/forecast_short_row2" />
 			</TableRow>
-
-		</TableLayout>
-
-		<TextView
-			style="@style/ForecastHeader"
-			android:layout_below="@id/forecast_table_short"
-			android:layout_width="fill_parent"
-			android:id="@+id/forecast_extended_title"
-			android:text="@string/forecast_title_extended"
-			android:background="@drawable/shape_background_blue" />
-
-		<TableLayout
-			android:layout_below="@id/forecast_extended_title"
-			android:layout_width="fill_parent"
-			android:layout_height="fill_parent"
-			android:id="@+id/forecast_table_extended"
-			android:stretchColumns="1">
-
 			<TableRow>
-				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
-					android:id="@+id/forecast_extended_row1" />
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row3" />
 			</TableRow>
-
 			<TableRow>
-				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
-					android:id="@+id/forecast_extended_row2" />
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row4" />
 			</TableRow>
-
 			<TableRow>
-				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
-					android:id="@+id/forecast_extended_row3" />
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row5" />
 			</TableRow>
-
 			<TableRow>
-				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
-					android:id="@+id/forecast_extended_row4" />
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row6" />
 			</TableRow>
-
 			<TableRow>
-				<com.SyntheticCode.BlueSkyWeather.ForecastExtendedView
-					android:id="@+id/forecast_extended_row5" />
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row7" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row8" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row9" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row10" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row11" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row12" />
+			</TableRow>
+			<TableRow>
+				<com.SyntheticCode.BlueSkyWeather.ForecastShortView
+					android:id="@+id/forecast_short_row13" />
 			</TableRow>
 
 		</TableLayout>

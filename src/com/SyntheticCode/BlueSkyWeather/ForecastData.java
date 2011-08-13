@@ -34,21 +34,107 @@ public class ForecastData {
 	public final static int forecastShortCount = 5;
 	public final static int forecastExtendedCount = 6;
 	
-	public ArrayList<ForecastDayShort> forecastShort;
-	public ArrayList<ForecastDayExtended> forecastExtended;
+	public static class ForecastDataObject {
+		public String timeLayout;
+		public ArrayList<String> data;
+		
+		public ForecastDataObject() {
+			timeLayout = "";
+			data = new ArrayList<String>();
+		}
+		
+		public int count() {
+			return data.size();
+		}
+		
+		public void print(String title) {
+			for(int i = 0; i < data.size(); i++) {
+				Log.v("BlueSky", title + " [" + i + "] " + data.get(i));
+			}
+		}
+	};
+	
+	public ArrayList<ForecastDataObject> periods;
+	public ForecastDataObject temperatureMin;
+	public ForecastDataObject temperatureMax;
+	public ForecastDataObject weatherCondition;
+	public ForecastDataObject conditionIcon;
+	public ForecastDataObject forecastText;
 	
 	public ForecastData() {
-		forecastShort = new ArrayList<ForecastDayShort>(forecastShortCount);
-		forecastExtended = new ArrayList<ForecastDayExtended>(forecastExtendedCount);
+		periods = new ArrayList<ForecastDataObject>();
+		temperatureMin = new ForecastDataObject();
+		temperatureMax = new ForecastDataObject();
+		weatherCondition = new ForecastDataObject();
+		conditionIcon = new ForecastDataObject();
+		forecastText = new ForecastDataObject();
+	}
+	
+	public String mapTemperatureToPeriod(int periodIndex) {
+		String temperature = "";
+		int minPeriod = 0;
+		int maxPeriod = 0;
+		// Get the name of the period we are looking for
+		String periodTitle = periods.get(0).data.get(periodIndex);
 		
+		// Match the periods to the min and max temperatures
+		for(int i = 1; i < periods.size(); i++) {
+			if(periods.get(i).timeLayout.equalsIgnoreCase(temperatureMin.timeLayout)) {
+				minPeriod = i;
+			}
+			if(periods.get(i).timeLayout.equalsIgnoreCase(temperatureMax.timeLayout)) {
+				maxPeriod = i;
+			}
+		}
+		
+		// Make sure the index that is to be checked exists and a minPeriod was found
+		if(((periodIndex/2) < periods.get(minPeriod).data.size()) && minPeriod != 0) {
+			// Check if the periodTitle is in the minTemperature period
+			if(periods.get(minPeriod).data.get(periodIndex/2).equalsIgnoreCase(periodTitle)) {
+				// Title found so temperate is min
+				temperature = temperatureMin.data.get(periodIndex/2);
+			}
+		}
+		// Make sure the index that is to be checked exists and a maxPeriod was found
+		if(((periodIndex/2) < periods.get(maxPeriod).data.size()) && maxPeriod != 0) {
+			// Check if the periodTitle is in the maxTemperature period
+			if(periods.get(maxPeriod).data.get(periodIndex/2).equalsIgnoreCase(periodTitle)) {
+				// Title found so temperate is max
+				temperature = temperatureMax.data.get(periodIndex/2);
+			}
+		}
+		
+		return temperature;
+	}
+	
+	public static int convertLinkToId(String link) {
+		int id;
+		String icon = parseIconFromLink(link);
+		
+		if(nwsIconHash.containsKey(icon)) {
+			id = nwsIconHash.get(icon);
+		}
+		else {
+			id = R.drawable.ic_forecast_unknown;
+		}
+		
+		return id;
+	}
+	
+	private static String parseIconFromLink(String link) {
+		String temp[];
+		temp = link.split("/");
+		
+		String icon = temp[temp.length - 1];
+		
+		// Remove 4 characters (".jpg") from end of string
+		icon = icon.substring(0, icon.length() - 4);
+		
+		return icon;
 	}
 	
 	private static int convertIconToId(String icon) {
 		int id;
-//		// If the icon has "nt_" (night) prefix then remove it
-//		if(icon.contains("nt_")) {
-//			icon = icon.substring(3);
-//		}
 		
 		Log.v("BlueSky", "Icon = " + icon);
 		
@@ -63,7 +149,7 @@ public class ForecastData {
 		return id;
 	}
 	
-	private static int convertIconToId(String condition, boolean night, String icon) {
+	public static int convertIconToId(String condition, boolean night, String iconDefault) {
 		int id;
 		String temp[] = condition.split("\\.", 2); // split string in 2 parts on first "."
 		String key = temp[0].toLowerCase();
@@ -77,125 +163,19 @@ public class ForecastData {
 		}
 		else {
 			Log.v("BlueSky", "No Condition match : " + key);
-			id = convertIconToId(icon);
+			id = convertIconToId(iconDefault);
 		}
 		
 		return id;
 	}
 	
-	private static boolean isNight(String s) {
+	public static boolean isNight(String s) {
 		// All the different strings that represent night
 		String night[] = {"Tonight", "Night"};
 		
 		if(s.contains(night[0])) return true;
 		if(s.contains(night[1])) return true;
 		return false;
-	}
-	
-	public class ForecastDayShort implements java.io.Serializable {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 2560286931395495389L;
-		
-		private String title;
-		private String icon;
-		private String forecast;
-		public void setTitle(String title) {
-			this.title = title.trim();
-		}
-		public String getTitle() {
-			return title;
-		}
-		public void setIcon(String icon) {
-			this.icon = icon.trim();
-		}
-		public String getIcon() {
-			return icon;
-		}
-		public int getIconId() {
-			return ForecastData.convertIconToId(this.forecast, ForecastData.isNight(this.title), this.icon);
-		}
-		public void setForecast(String forecast) {
-			this.forecast = forecast.trim();
-		}
-		public String getForecast() {
-			return forecast;
-		}
-	}
-	
-	public class ForecastDayExtended implements java.io.Serializable {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4761682674571058997L;
-		
-		private String dateDay;
-		private String dateMonth;
-		private String dateWeekday;
-		private String high_F;
-		private String high_C;
-		private String low_F;
-		private String low_C;
-		private String icon;
-		private String condition;
-		public void setDateDay(String dateDay) {
-			this.dateDay = dateDay.trim();
-		}
-		public String getDateDay() {
-			return dateDay;
-		}
-		public void setDateMonth(String dateMonth) {
-			this.dateMonth = dateMonth.trim();
-		}
-		public String getDateMonth() {
-			return dateMonth;
-		}
-		public void setDateWeekday(String dateWeekday) {
-			this.dateWeekday = dateWeekday.trim();
-		}
-		public String getDateWeekday() {
-			return dateWeekday;
-		}
-		public void setHigh_F(String high_F) {
-			this.high_F = high_F.trim();
-		}
-		public String getHigh_F() {
-			return high_F;
-		}
-		public void setHigh_C(String high_C) {
-			this.high_C = high_C.trim();
-		}
-		public String getHigh_C() {
-			return high_C;
-		}
-		public void setLow_F(String low_F) {
-			this.low_F = low_F.trim();
-		}
-		public String getLow_F() {
-			return low_F;
-		}
-		public void setLow_C(String low_C) {
-			this.low_C = low_C.trim();
-		}
-		public String getLow_C() {
-			return low_C;
-		}
-		public void setIcon(String icon) {
-			this.icon = icon.trim();
-		}
-		public String getIcon() {
-			return icon;
-		}
-		public int getIconId() {
-			return ForecastData.convertIconToId(this.condition, false, this.icon);
-		}
-		public void setCondition(String condition) {
-			this.condition = condition;
-		}
-		public String getCondition() {
-			return condition;
-		}
 	}
 	
 	private final static HashMap<String, Integer> iconHash = new HashMap<String, Integer>();
@@ -551,5 +531,331 @@ public class ForecastData {
 		conditionHash.put("Haze".toLowerCase(), "hazy");
 		
 		conditionHash.put("Mostly Sunny".toLowerCase(), "mostlysunny"); // not in list on NWS
+	}
+	
+	// Convert NWS icon name to icon string
+	private final static HashMap<String, Integer> nwsIconHash = new HashMap<String, Integer>();
+	static {
+		// All NWS conditions from http://www.weather.gov/xml/current_obs/weather.php
+		nwsIconHash.put("bkn", R.drawable.ic_forecast_mostlycloudy);
+		
+		nwsIconHash.put("blizzard", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard10", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard100", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard20", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard30", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard40", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard50", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard60", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard70", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard80", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("blizzard90", R.drawable.ic_forecast_snow);
+		
+		//nwsIconHash.put("br", R.drawable.);
+		
+		//nwsIconHash.put("cold", R.drawable.);
+		
+		nwsIconHash.put("du", R.drawable.ic_forecast_nt_hazy);
+		nwsIconHash.put("dust", R.drawable.ic_forecast_nt_hazy);
+		
+		nwsIconHash.put("few", R.drawable.ic_forecast_mostlysunny);
+		
+		nwsIconHash.put("fg", R.drawable.ic_forecast_fog);
+		
+		nwsIconHash.put("fu", R.drawable.ic_forecast_nt_hazy);
+		
+		nwsIconHash.put("fzra", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra10", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra100", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra20", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra30", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra40", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra50", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra60", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra70", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra80", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzra90", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("fzrara", R.drawable.ic_forecast_sleet);
+		
+		nwsIconHash.put("hazy", R.drawable.ic_forecast_hazy);
+		
+		nwsIconHash.put("hi_bkn", R.drawable.ic_forecast_mostlycloudy);
+		
+		nwsIconHash.put("hi_few", R.drawable.ic_forecast_partlycloudy);
+		
+		nwsIconHash.put("hi_nbkn", R.drawable.ic_forecast_nt_mostlycloudy);
+		
+		nwsIconHash.put("hi_nfew", R.drawable.ic_forecast_nt_partlycloudy);
+		nwsIconHash.put("hi_nsct", R.drawable.ic_forecast_nt_partlycloudy);
+		
+		nwsIconHash.put("hi_nshwrs", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs10", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs100", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs20", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs30", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs40", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs50", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs60", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs70", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs80", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("hi_nshwrs90", R.drawable.ic_forecast_nt_rain);
+		
+		nwsIconHash.put("hi_nskc", R.drawable.ic_forecast_nt_clear);
+		
+		nwsIconHash.put("hi_ntsra", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra10", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra100", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra20", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra30", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra40", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra50", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra60", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra70", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra80", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("hi_ntsra90", R.drawable.ic_forecast_nt_tstorm);
+		
+		nwsIconHash.put("hi_sct", R.drawable.ic_forecast_partlycloudy);
+		
+		nwsIconHash.put("hi_shwrs", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs10", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs100", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs20", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs30", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs40", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs50", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs60", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs70", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs80", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("hi_shwrs90", R.drawable.ic_forecast_rain);
+		
+		nwsIconHash.put("hi_skc", R.drawable.ic_forecast_clear);
+		
+		nwsIconHash.put("hi_tsra", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra10", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra100", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra20", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra30", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra40", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra50", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra60", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra70", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra80", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("hi_tsra90", R.drawable.ic_forecast_tstorm);
+		
+		nwsIconHash.put("hot", R.drawable.ic_forecast_clear);
+		
+		nwsIconHash.put("ip", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip10", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip100", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip20", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip30", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip40", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip50", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip60", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip70", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip80", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("ip90", R.drawable.ic_forecast_hail);
+		
+		nwsIconHash.put("mist", R.drawable.ic_forecast_fog);
+		
+		nwsIconHash.put("mix", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix10", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix100", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix20", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix30", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix40", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix50", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix60", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix70", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix80", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("mix90", R.drawable.ic_forecast_sleet);
+		
+		nwsIconHash.put("nbkn", R.drawable.ic_forecast_nt_mostlycloudy);
+		
+		nwsIconHash.put("nfew", R.drawable.ic_forecast_nt_partlycloudy);
+		
+		nwsIconHash.put("nfg", R.drawable.ic_forecast_nt_fog);
+		
+		nwsIconHash.put("nmix", R.drawable.ic_forecast_nt_snow);
+		
+		nwsIconHash.put("novc", R.drawable.ic_forecast_nt_mostlycloudy);
+		
+		nwsIconHash.put("nra", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra10", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra100", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra20", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra30", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra40", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra50", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra60", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra70", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra80", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nra90", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip10", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip100", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip20", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip30", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip40", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip50", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip60", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip70", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip80", R.drawable.ic_forecast_nt_rain);
+		nwsIconHash.put("nraip90", R.drawable.ic_forecast_nt_rain);
+		
+		nwsIconHash.put("nrasn", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn10", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn100", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn20", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn30", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn40", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn50", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn60", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn70", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn80", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nrasn90", R.drawable.ic_forecast_nt_snow);
+		
+		nwsIconHash.put("nsct", R.drawable.ic_forecast_nt_partlycloudy);
+		
+		nwsIconHash.put("nscttsra", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra10", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra100", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra20", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra30", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra40", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra50", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra60", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra70", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra80", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("nscttsra90", R.drawable.ic_forecast_nt_tstorm);
+		
+		nwsIconHash.put("nskc", R.drawable.ic_forecast_nt_clear);
+		
+		nwsIconHash.put("nsn", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn10", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn100", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn20", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn30", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn40", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn50", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn60", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn70", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn80", R.drawable.ic_forecast_nt_snow);
+		nwsIconHash.put("nsn90", R.drawable.ic_forecast_nt_snow);
+		
+		nwsIconHash.put("nsvrtsra", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra10", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra100", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra20", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra30", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra40", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra50", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra60", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra70", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra80", R.drawable.ic_forecast_nt_tstorm);
+		nwsIconHash.put("ntsra90", R.drawable.ic_forecast_nt_tstorm);
+		
+		//nwsIconHash.put("nwind", R.drawable.);
+		
+		nwsIconHash.put("ovc", R.drawable.ic_forecast_cloudy);
+		
+		nwsIconHash.put("pcloudy", R.drawable.ic_forecast_partlycloudy);
+		
+		nwsIconHash.put("ra", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra1", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra10", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra100", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra20", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra30", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra40", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra50", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra60", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra70", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra80", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("ra90", R.drawable.ic_forecast_rain);
+		
+		nwsIconHash.put("raip", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip10", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip100", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip20", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip30", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip40", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip50", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip60", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip70", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip80", R.drawable.ic_forecast_hail);
+		nwsIconHash.put("raip90", R.drawable.ic_forecast_hail);
+		
+		nwsIconHash.put("rasn", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn10", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn100", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn20", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn30", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn40", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn50", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn60", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn70", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn80", R.drawable.ic_forecast_sleet);
+		nwsIconHash.put("rasn90", R.drawable.ic_forecast_sleet);
+		
+		nwsIconHash.put("sct", R.drawable.ic_forecast_nt_partlycloudy);
+		
+		nwsIconHash.put("scttsra", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra10", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra100", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra20", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra30", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra40", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra50", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra60", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra70", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra80", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("scttsra90", R.drawable.ic_forecast_tstorm);
+		
+		nwsIconHash.put("shra", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra10", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra100", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra2", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra20", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra30", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra40", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra50", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra60", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra70", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra80", R.drawable.ic_forecast_rain);
+		nwsIconHash.put("shra90", R.drawable.ic_forecast_rain);
+		
+		nwsIconHash.put("skc", R.drawable.ic_forecast_clear);
+		
+		nwsIconHash.put("smoke", R.drawable.ic_forecast_hazy);
+		
+		nwsIconHash.put("sn", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn10", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn100", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn20", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn30", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn40", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn50", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn60", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn70", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn80", R.drawable.ic_forecast_snow);
+		nwsIconHash.put("sn90", R.drawable.ic_forecast_snow);
+		
+		nwsIconHash.put("tcu", R.drawable.ic_forecast_cloudy);
+		
+		nwsIconHash.put("tsra", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra10", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra100", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra20", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra30", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra40", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra50", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra60", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra70", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra80", R.drawable.ic_forecast_tstorm);
+		nwsIconHash.put("tsra90", R.drawable.ic_forecast_tstorm);
+		
+		//nwsIconHash.put("wind", R.drawable.);
 	}
 }

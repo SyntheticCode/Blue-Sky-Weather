@@ -32,6 +32,7 @@ import android.widget.TextView;
 public class ForecastShortView extends RelativeLayout {
 	public ImageView icon;
 	public TextView title;
+	public TextView temperature;
 	public TextView condition;
 
 	public ForecastShortView(Context context, AttributeSet attrs) {
@@ -41,6 +42,7 @@ public class ForecastShortView extends RelativeLayout {
 		
 		icon = (ImageView) findViewById(R.id.forecast_short_icon);
 		title = (TextView) findViewById(R.id.forecast_short_title);
+		temperature = (TextView) findViewById(R.id.forecast_short_temperature);
 		condition = (TextView) findViewById(R.id.forecast_short_condition);
 	}
 

@@ -42,8 +42,8 @@ import android.widget.Toast;
 
 public class BlueSkyActivity extends TabActivity {
 	public static final int SEARCH_CITY = 1;
-	public static final int FORECAST_SHORT_COUNT = 2;
-	public static final int FORECAST_EXTENDED_COUNT = 5;
+	//public static final int FORECAST_SHORT_COUNT = 2;
+	//public static final int FORECAST_EXTENDED_COUNT = 5;
 	
 	public static final int DIALOG_STATION_LOADING = 0;
 	public static final int DIALOG_WEATHER_LOADING = 1;
@@ -60,7 +60,7 @@ public class BlueSkyActivity extends TabActivity {
 	public boolean refreshStationList;
 	
 	// Preferences
-	public String currentLocation;
+	public CityData currentLocation;
 	public int currentStationIndex;
 	
 	// AsyncTasks
@@ -129,7 +129,8 @@ public class BlueSkyActivity extends TabActivity {
 			
 			SharedPreferences preferences = this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 			
-			currentLocation = preferences.getString(PREF_KEY_LOCATION, null);
+			currentLocation = new CityData();
+			currentLocation.restoreData(preferences);
 			
 			currentWeather = new WeatherData();
 			currentWeather.restoreData(preferences);
@@ -137,7 +138,7 @@ public class BlueSkyActivity extends TabActivity {
 		
 		// If any of the objects were restored then update the UI
 		if(currentLocation != null) {
-			ui.location.setText(currentLocation);
+			ui.location.setText(currentLocation.getCityState());
 		}
 		
 		if(currentWeather != null) {
@@ -238,7 +239,7 @@ public class BlueSkyActivity extends TabActivity {
 				if(stationList == null || refreshStationList) {
 					// Get the list of stations for the city (run in a thread)
 					stationTask = new StationParserTask(this);
-					stationTask.execute(currentLocation); // Weather will be refreshed
+					stationTask.execute(currentLocation.getCityState()); // Weather will be refreshed
 				}
 				else {
 					stationSelected(currentStationIndex);
@@ -259,19 +260,25 @@ public class BlueSkyActivity extends TabActivity {
 			// Only look at results that returned OK
 			if (resultCode == Activity.RESULT_OK) {
 				Bundle extras = data.getExtras();
-				currentLocation = extras.getString(SearchResultActivity.KEY_QUERY);
+				currentLocation.decodeObject(extras.getString(SearchResultActivity.KEY_QUERY));
+				
+				Log.v("BlueSky", "Current City = " + 
+						currentLocation.getCity() + " " +
+						currentLocation.getState() + " " +
+						currentLocation.getCountry() + " " +
+						currentLocation.getZip() + " " +
+						currentLocation.getLat() + " " +
+						currentLocation.getLon());
 
 				// Set the Location (city)
-				ui.location.setText(currentLocation);
+				ui.location.setText(currentLocation.getCityState());
 				
 				// Save location to DB
-				SharedPreferences.Editor editor = getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit();
-				editor.putString(PREF_KEY_LOCATION, currentLocation);
-				editor.commit();
+				currentLocation.saveData(this.getSharedPreferences(PREF_NAME, MODE_PRIVATE));
 				
 				// Get the list of stations for the city (run in a thread)
 				stationTask = new StationParserTask(this);
-				stationTask.execute(currentLocation);
+				stationTask.execute(currentLocation.getCityState());
 			}
 		}
 
@@ -412,7 +419,7 @@ public class BlueSkyActivity extends TabActivity {
 		public WeatherData weatherData = null;
 		public ForecastData forecastData = null;
 		
-		public String location = null;
+		public CityData location = null;
 		public int stationIndex = -1;
 		
 		// AsyncTasks

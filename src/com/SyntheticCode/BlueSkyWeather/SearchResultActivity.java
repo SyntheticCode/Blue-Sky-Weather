@@ -44,7 +44,8 @@ public class SearchResultActivity extends ListActivity {
 	private static final int DIALOG_SEARCHING = 0;
 	
 	private GeoLookupParserTask task = null;
-	private ArrayList<String> list = null;
+	private ArrayList<CityData> list = null;
+	private boolean citySelected = false;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -55,7 +56,13 @@ public class SearchResultActivity extends ListActivity {
 		// Get string entered in search box
 		String query = intent.getStringExtra(KEY_QUERY);
 		
-		task = (GeoLookupParserTask) getLastNonConfigurationInstance();
+		SaveObjects save = (SaveObjects) getLastNonConfigurationInstance();
+		
+		if(save != null) {
+			task = save.task;
+			list = save.list;
+			citySelected = save.citySelected;
+		}
 		
 		if(task == null) {
 			task = new GeoLookupParserTask(this);
@@ -66,30 +73,26 @@ public class SearchResultActivity extends ListActivity {
 			task.attach(this);
 		}
 		
-		
-		if(savedInstanceState != null) {
-			// Redisplay results if screen was rotated and task is not running
-			if(task.getStatus() != AsyncTask.Status.RUNNING) {
-				showResults(savedInstanceState.getStringArrayList(KEY_LIST));
-			}
+		// Redisplay results if screen was rotated and task is not running
+		if(task.getStatus() != AsyncTask.Status.RUNNING) {
+			showResults(list);
 		}
 	}
 	
 	
 	@Override
 	public Object onRetainNonConfigurationInstance() {
-		task.detach();
-
-		return(task);
-	}
-	
-	@Override
-	public void onSaveInstanceState(Bundle savedInstanceState) {
-		if(list != null) {
-			savedInstanceState.putStringArrayList(KEY_LIST, list);
+		SaveObjects save = new SaveObjects();
+		
+		if(task != null) {
+			task.detach();
 		}
 		
-		super.onSaveInstanceState(savedInstanceState);
+		save.task = task;
+		save.list = list;
+		save.citySelected = citySelected;
+
+		return(save);
 	}
 	
 	// Use the Activity to manage the dialog. If it is running and needs
@@ -123,10 +126,19 @@ public class SearchResultActivity extends ListActivity {
 		}
 	}
 	
-	public void showResults(ArrayList<String> results) {
+	public void showResults(ArrayList<CityData> results) {
 		if(results != null) {
+			ArrayList<String> cityList = new ArrayList<String>();
 			this.list = results; // save results
-			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, results));
+			
+			Log.v("BlueSky", "Search Results = " + results.size());
+			
+			for(int i = 0; i < results.size(); i++) {
+				cityList.add(results.get(i).getCityState());
+				Log.v("BlueSky", list.get(i).getCityState());
+			}
+			
+			this.setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, cityList));
 		}
 		else { // if results == null then search could not find a city
 			// Warn user and then cancel
@@ -147,14 +159,23 @@ public class SearchResultActivity extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		
-		// Get the item that was clicked
-		Object o = this.getListAdapter().getItem(position);
-		String keyword = o.toString();
-		
+		// If all the data for the city is filled in then send back the results
+		if(list.get(position).infoComplete()) {
+			sendBackResults(position);
+		}
+		// Other wise get the rest of the data
+		else {
+			citySelected = true;
+			task = new GeoLookupParserTask(this);
+			task.execute(list.get(position).getCityState());
+		}
+	}
+	
+	private void sendBackResults(int position) {
 		// Send clicked item back to parent
 		Intent intent = new Intent();
-		intent.putExtra(KEY_QUERY, keyword);
+		// Put the encoded CityData object
+		intent.putExtra(KEY_QUERY, list.get(position).encodeObject());
 		setResult(RESULT_OK, intent);
 		finish();
 	}
@@ -166,7 +187,7 @@ public class SearchResultActivity extends ListActivity {
 	 * @author David
 	 *
 	 */
-	static private class GeoLookupParserTask extends AsyncTask<String, Void, ArrayList<String>> {
+	static private class GeoLookupParserTask extends AsyncTask<String, Void, ArrayList<CityData>> {
 		SearchResultActivity parent = null;
 		Context appContext = null;
 		
@@ -194,8 +215,8 @@ public class SearchResultActivity extends ListActivity {
 			parent.showDialog(SearchResultActivity.DIALOG_SEARCHING);
 		}
 		
-		protected ArrayList<String> doInBackground(String... params) {
-			ArrayList<String> list = null;
+		protected ArrayList<CityData> doInBackground(String... params) {
+			ArrayList<CityData> list = null;
 			
 			// Try creating the parser and parsing the results
 			try {
@@ -210,9 +231,19 @@ public class SearchResultActivity extends ListActivity {
 			return list;
 		}
 		
-		protected void onPostExecute(ArrayList<String> result) {
+		protected void onPostExecute(ArrayList<CityData> result) {
 			if(noError) {
-				parent.showResults(result);
+				// If user has not selected a city then display results
+				if(parent.citySelected == false) {
+					parent.showResults(result);
+				}
+				// If user already selected a city then this task was called
+				// to get more data. So just send back the results. Should only
+				// be 1 city in list.
+				else {
+					parent.list = result;
+					parent.sendBackResults(0);
+				}
 			}
 			else {
 				parent.showError();
@@ -230,4 +261,9 @@ public class SearchResultActivity extends ListActivity {
 		}
 	};
 	
+	private class SaveObjects {
+		public GeoLookupParserTask task = null;
+		public ArrayList<CityData> list = null;
+		public boolean citySelected = false;
+	}
 }

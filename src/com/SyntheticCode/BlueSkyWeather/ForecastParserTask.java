@@ -30,7 +30,7 @@ import android.widget.Toast;
  * Starts an AsyncTask for parsing the forecast.
  * Displays a ProgressDialog while parsing. Parse can be canceled with back button.
  */
-public class ForecastParserTask extends AsyncTask<String, Void, ForecastData> {
+public class ForecastParserTask extends AsyncTask<CityData, Void, ForecastData> {
 	BlueSkyActivity parent = null;
 	Context appContext = null;
 	
@@ -52,7 +52,7 @@ public class ForecastParserTask extends AsyncTask<String, Void, ForecastData> {
 		this.parent = null;
 	}
 	
-	protected ForecastData doInBackground(String... params) {
+	protected ForecastData doInBackground(CityData... params) {
 		ForecastData forecast = null;
 		
 		// Try creating the parser and then parsing

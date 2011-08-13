@@ -2,13 +2,21 @@
 <merge
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/forecastRowShortLayout"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
 
 	<TextView
 		style="@style/ForecastTitle"
 		android:id="@+id/forecast_short_title"
-		android:layout_width="fill_parent" />
+		android:layout_width="wrap_content" />
+		
+	<TextView
+		style="@style/ForecastText"
+		android:id="@+id/forecast_short_temperature"
+		android:layout_toRightOf="@id/forecast_short_title"
+		android:layout_alignBottom="@id/forecast_short_title"
+		android:singleLine="true"
+		android:scrollHorizontally="false"
+		android:layout_width="wrap_content" />
 
 	<ImageView
 		android:id="@+id/forecast_short_icon"

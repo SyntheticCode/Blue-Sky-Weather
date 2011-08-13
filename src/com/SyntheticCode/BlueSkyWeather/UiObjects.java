@@ -67,7 +67,6 @@ public class UiObjects {
 	public TextView uvIndex;
 	// Forecast Tab
 	public ArrayList<ForecastShortView> forecastShort;
-	public ArrayList<ForecastExtendedView> forecastExtended;
 	
 	// Key value for store and load
 	private static final String KEY_LOCATION 		= "location";
@@ -83,22 +82,11 @@ public class UiObjects {
 	private static final String KEY_VISIBILITY		= "visibility";
 	private static final String KEY_DEWPOINT		= "dewPoint";
 	private static final String KEY_UVINDEX			= "uvIndex";
-	//private static final String KEY_STATIONLISTVIEW	= "stationListView";
 	
-	private static final String KEY_FORECASTSHORT_ICON		= "forecastShortIcon";
-	private static final String KEY_FORECASTSHORT_TITLE		= "forecastShortTitle";
-	private static final String KEY_FORECASTSHORT_CONDITION	= "forecastShortCondition";
-	
-	private static final String KEY_FORECASTEXTENDED_ICON				= "forecastExtendedIcon";
-	private static final String KEY_FORECASTEXTENDED_TITLE				= "forecastExtendedTitle";
-	private static final String KEY_FORECASTEXTENDED_CONDITION			= "forecastExtendedCondition";
-	private static final String KEY_FORECASTEXTENDED_TEMPERATUREHIGH	= "forecastExtendedTemperatureHigh";
-	private static final String KEY_FORECASTEXTENDED_TEMPERATURELOW		= "forecastExtendedTemperatureLow";
-	private static final String KEY_FORECASTEXTENDED_TEMPERATUREUNIT	= "forecastExtendedTemperatureUnit";
-	
-//	public UiObjects() {
-//		
-//	}
+	private static final String KEY_FORECASTSHORT_ICON			= "forecastShortIcon";
+	private static final String KEY_FORECASTSHORT_TITLE			= "forecastShortTitle";
+	private static final String KEY_FORECASTSHORT_TEMPERATURE	= "forecastShortTitle";
+	private static final String KEY_FORECASTSHORT_CONDITION		= "forecastShortCondition";
 	
 	public UiObjects(BlueSkyActivity parentActivity) {
 		parent = parentActivity;
@@ -150,14 +138,27 @@ public class UiObjects {
 		this.uvIndex = (TextView) parent.findViewById(R.id.weather_uv);
 		// Forecast Tab objects
 		this.forecastShort = new ArrayList<ForecastShortView>();
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row0));
 		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row1));
 		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row2));
-		this.forecastExtended = new ArrayList<ForecastExtendedView>();
-		this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row1));
-		this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row2));
-		this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row3));
-		this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row4));
-		this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row5));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row3));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row4));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row5));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row6));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row7));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row8));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row9));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row10));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row11));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row12));
+		this.forecastShort.add((ForecastShortView) parent.findViewById(R.id.forecast_short_row13));
+		
+		//this.forecastExtended = new ArrayList<ForecastExtendedView>();
+		//this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row1));
+		//this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row2));
+		//this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row3));
+		//this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row4));
+		//this.forecastExtended.add((ForecastExtendedView) parent.findViewById(R.id.forecast_extended_row5));
 	}
 	
 	public Bundle saveState(Bundle savedInstanceState) {
@@ -179,41 +180,19 @@ public class UiObjects {
 		int size = this.forecastShort.size();
 		int[] icon = new int[size];
 		String[] title = new String[size];
+		String[] temperature = new String[size];
 		String[] condition = new String[size];
 		for(int i = 0; i < size; i++) {
 			icon[i] = this.forecastShort.get(i).icon.getId();
 			title[i] = this.forecastShort.get(i).title.getText().toString();
+			temperature[i] = this.forecastShort.get(i).temperature.getText().toString();
 			condition[i] = this.forecastShort.get(i).condition.getText().toString();
 		}
 		// Save all forecastShort as arrays
 		savedInstanceState.putIntArray(KEY_FORECASTSHORT_ICON, icon);
 		savedInstanceState.putStringArray(KEY_FORECASTSHORT_TITLE, title);
+		savedInstanceState.putStringArray(KEY_FORECASTSHORT_TEMPERATURE, temperature);
 		savedInstanceState.putStringArray(KEY_FORECASTSHORT_CONDITION, condition);
-		
-		// Get all forecastExtended objects
-		size = this.forecastExtended.size();
-		icon = new int[size];
-		title = new String[size];
-		condition = new String[size];
-		String[] temperatureHigh = new String[size];
-		String[] temperatureLow = new String[size];
-		String[] temperatureUnit = new String[size];
-		for(int i = 0; i < size; i++) {
-			icon[i] = this.forecastExtended.get(i).icon.getId();
-			title[i] = this.forecastExtended.get(i).title.getText().toString();
-			condition[i] = this.forecastExtended.get(i).condition.getText().toString();
-			temperatureHigh[i] = this.forecastExtended.get(i).temperatureHigh.getText().toString();
-			temperatureLow[i] = this.forecastExtended.get(i).temperatureLow.getText().toString();
-			temperatureUnit[i] = this.forecastExtended.get(i).temperatureUnit.getText().toString();
-		}
-		
-		// Save all forecastShort as arrays
-		savedInstanceState.putIntArray(KEY_FORECASTEXTENDED_ICON, icon);
-		savedInstanceState.putStringArray(KEY_FORECASTEXTENDED_TITLE, title);
-		savedInstanceState.putStringArray(KEY_FORECASTEXTENDED_CONDITION, condition);
-		savedInstanceState.putStringArray(KEY_FORECASTEXTENDED_TEMPERATUREHIGH, temperatureHigh);
-		savedInstanceState.putStringArray(KEY_FORECASTEXTENDED_TEMPERATURELOW, temperatureLow);
-		savedInstanceState.putStringArray(KEY_FORECASTEXTENDED_TEMPERATUREUNIT, temperatureUnit);
 		
 		return savedInstanceState;
 	}
@@ -286,42 +265,21 @@ public class UiObjects {
 				this.uvIndex.setText(s);
 			}
 			
-			
 			// Get all forecastShort data
 			int size = this.forecastShort.size();
 			int[] icon = savedInstanceState.getIntArray(KEY_FORECASTSHORT_ICON);
 			String[] title = savedInstanceState.getStringArray(KEY_FORECASTSHORT_TITLE);
+			String[] temperature = savedInstanceState.getStringArray(KEY_FORECASTSHORT_TEMPERATURE);
 			String[] condition = savedInstanceState.getStringArray(KEY_FORECASTSHORT_CONDITION);
 			for(int i = 0; i < size; i++) {
-				if(i > icon.length || i > title.length || i > condition.length) {
+				if(i > icon.length || i > title.length || i > condition.length || i > temperature.length) {
 					break;
 				}
 				else if(icon[i] != 0 && title[i] != null && condition[i] != null) {
 					this.forecastShort.get(i).icon.setImageResource(icon[i]);
 					this.forecastShort.get(i).title.setText(title[i]);
+					this.forecastShort.get(i).temperature.setText(temperature[i]);
 					this.forecastShort.get(i).condition.setText(condition[i]);
-				}
-			}
-			
-			// Get all forecastExtended data
-			size = this.forecastExtended.size();
-			icon = savedInstanceState.getIntArray(KEY_FORECASTEXTENDED_ICON);
-			title = savedInstanceState.getStringArray(KEY_FORECASTEXTENDED_TITLE);
-			condition = savedInstanceState.getStringArray(KEY_FORECASTEXTENDED_CONDITION);
-			String[] temperatureHigh = savedInstanceState.getStringArray(KEY_FORECASTEXTENDED_TEMPERATUREHIGH);
-			String[] temperatureLow = savedInstanceState.getStringArray(KEY_FORECASTEXTENDED_TEMPERATURELOW);
-			String[] temperatureUnit = savedInstanceState.getStringArray(KEY_FORECASTEXTENDED_TEMPERATUREUNIT);
-			for(int i = 0; i < size; i++) {
-				if(i > icon.length || i > title.length || i > condition.length || i > temperatureHigh.length || i > temperatureLow.length || i > temperatureUnit.length) {
-					break;
-				}
-				else if(icon[i] != 0 && title[i] != null && condition[i] != null && temperatureHigh[i] != null && temperatureLow[i] != null && temperatureUnit[i] != null) {
-					this.forecastExtended.get(i).icon.setImageResource(icon[i]);
-					this.forecastExtended.get(i).title.setText(title[i]);
-					this.forecastExtended.get(i).condition.setText(condition[i]);
-					this.forecastExtended.get(i).temperatureHigh.setText(temperatureHigh[i]);
-					this.forecastExtended.get(i).temperatureLow.setText(temperatureLow[i]);
-					this.forecastExtended.get(i).temperatureUnit.setText(temperatureUnit[i]);
 				}
 			}
 		}
@@ -343,31 +301,17 @@ public class UiObjects {
 	}
 	
 	public void updateForecastTab(ForecastData forecast) {
-		if(forecast.forecastShort.size() > 1 && forecast.forecastExtended.size() > 4) {
-			// Short Forecast display data
-			for(int i = 0; i < BlueSkyActivity.FORECAST_SHORT_COUNT; i++) {
-				this.forecastShort.get(i).icon.setImageResource(forecast.forecastShort.get(i).getIconId());
-				this.forecastShort.get(i).title.setText(forecast.forecastShort.get(i).getTitle());
-				this.forecastShort.get(i).condition.setText(forecast.forecastShort.get(i).getForecast());
-			}
-			
-			// Extended Forecast display data
-			for(int i = 0; i < BlueSkyActivity.FORECAST_EXTENDED_COUNT; i++) {
-				this.forecastExtended.get(i).icon.setImageResource(forecast.forecastExtended.get(i).getIconId());
-				this.forecastExtended.get(i).title.setText(forecast.forecastExtended.get(i).getDateWeekday());
-				this.forecastExtended.get(i).condition.setText(forecast.forecastExtended.get(i).getCondition());
-				this.forecastExtended.get(i).temperatureHigh.setText(forecast.forecastExtended.get(i).getHigh_F());
-				this.forecastExtended.get(i).temperatureLow.setText(forecast.forecastExtended.get(i).getLow_F());
-				this.forecastExtended.get(i).temperatureUnit.setText(parent.getString(R.string.unit_english_temperature));
-			}
-			
-			showForecast();
+		int count = forecast.periods.get(0).count();
+		
+		
+		for(int i = 0; i < count; i++) {
+			this.forecastShort.get(i).icon.setImageResource(ForecastData.convertLinkToId(forecast.conditionIcon.data.get(i)));
+			this.forecastShort.get(i).title.setText(forecast.periods.get(0).data.get(i));
+			this.forecastShort.get(i).temperature.setText(forecast.mapTemperatureToPeriod(i) + " °F");
+			this.forecastShort.get(i).condition.setText(forecast.forecastText.data.get(i));
 		}
-		else {
-			// Warn user
-			Toast.makeText(parent, "Forecast Data Error", Toast.LENGTH_LONG).show();
-			hideForecast("");
-		}
+		
+		showForecast();
 	}
 	
 	public void updateStationListView(ArrayList<String> names, ArrayList<WeatherStation.StationType> types) {
@@ -385,15 +329,11 @@ public class UiObjects {
 		// Create all the forecast View objects
 		TextView headerShort = (TextView)parent.findViewById(R.id.forecast_short_title);
 		TableLayout tableShort = (TableLayout)parent.findViewById(R.id.forecast_table_short);
-		TextView headerExtended = (TextView)parent.findViewById(R.id.forecast_extended_title);
-		TableLayout tableExtended = (TableLayout)parent.findViewById(R.id.forecast_table_extended);
 		TextView forecastEmpty = (TextView)parent.findViewById(R.id.forecast_empty_title);
 		
 		// Hide the forecast objects
 		headerShort.setVisibility(View.GONE);
 		tableShort.setVisibility(View.GONE);
-		headerExtended.setVisibility(View.GONE);
-		tableExtended.setVisibility(View.GONE);
 		
 		// Show the empty text
 		forecastEmpty.setText(text);
@@ -404,15 +344,11 @@ public class UiObjects {
 		// Create all the forecast View objects
 		TextView headerShort = (TextView)parent.findViewById(R.id.forecast_short_title);
 		TableLayout tableShort = (TableLayout)parent.findViewById(R.id.forecast_table_short);
-		TextView headerExtended = (TextView)parent.findViewById(R.id.forecast_extended_title);
-		TableLayout tableExtended = (TableLayout)parent.findViewById(R.id.forecast_table_extended);
 		TextView forecastEmpty = (TextView)parent.findViewById(R.id.forecast_empty_title);
 		
 		// Show the forecast objects
 		headerShort.setVisibility(View.VISIBLE);
 		tableShort.setVisibility(View.VISIBLE);
-		headerExtended.setVisibility(View.VISIBLE);
-		tableExtended.setVisibility(View.VISIBLE);
 		
 		// Hide the empty text
 		forecastEmpty.setVisibility(View.GONE);

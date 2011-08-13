@@ -23,6 +23,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 public abstract class BaseFeedParser {
 	
 	private final URL feedUrl;
@@ -54,4 +57,5 @@ public abstract class BaseFeedParser {
 	public void stopParse() {
 		abort = true;
 	}
+	
 }

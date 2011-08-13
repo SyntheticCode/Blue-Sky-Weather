@@ -109,7 +109,6 @@ public class WeatherParserTask extends AsyncTask<WeatherStation, Void, WeatherDa
 			
 			// Start a forecast parse (if weather parse failed then don't parse forecast)
 			// TODO: Check if forecast should be updated or not
-			Log.v("BlueSky", "location = " + parent.currentLocation);
 			parent.forecastTask = new ForecastParserTask(parent);
 			parent.forecastTask.execute(parent.currentLocation);
 		}

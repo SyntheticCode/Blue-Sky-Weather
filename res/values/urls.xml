@@ -5,4 +5,5 @@
 <string name="wui_pws">http://api.wunderground.com/weatherstation/WXCurrentObXML.asp?ID=</string>
 <string name="wui_alert">http://api.wunderground.com/auto/wui/geo/AlertsXML/index.xml?query=</string>
 <string name="wui_forecast">http://api.wunderground.com/auto/wui/geo/ForecastXML/index.xml?query=</string>
+<string name="nws_forecast">http://forecast.weather.gov/MapClick.php?CityName=</string>
 </resources>

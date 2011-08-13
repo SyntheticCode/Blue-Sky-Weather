@@ -21,15 +21,12 @@ package com.SyntheticCode.BlueSkyWeather.parsers;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.SyntheticCode.BlueSkyWeather.CityData;
 import com.SyntheticCode.BlueSkyWeather.ForecastData;
-import com.SyntheticCode.BlueSkyWeather.ForecastData.ForecastDayExtended;
-import com.SyntheticCode.BlueSkyWeather.ForecastData.ForecastDayShort;
-import com.SyntheticCode.BlueSkyWeather.R;
-
+import com.SyntheticCode.BlueSkyWeather.ForecastData.ForecastDataObject;
 import android.content.Context;
 import android.util.Log;
 import android.util.Xml;
@@ -60,8 +57,28 @@ public class ForecastParser extends BaseFeedParser {
 	static final String EXTENDED_LOW = "low";
 	static final String EXTENDED_CONDITION = "conditions";
 	
-	private enum FORECAST_TYPE {NONE, SHORT, EXTENDED};
-	private enum TEMP_TYPE {NONE, LOW, HIGH};
+	/** Tags **/
+	// Forecast period title
+	static final String PERIOD_ROOT = "time-layout";
+	static final String PERIOD_LAYOUT_KEY = "layout-key";
+	static final String PERIOD = "start-valid-time";
+	
+	// Data
+	static final String PARAM_ROOT = "parameters";
+	static final String TEMP_ROOT = "temperature";
+	static final String CONDITION_ROOT = "weather";
+	static final String ICON_ROOT = "conditions-icon";
+	static final String FORECAST_ROOT = "wordedForecast";
+	static final String PARAM_VALUE = "value";
+	static final String CONDITION = "weather-conditions";
+	static final String ICON = "icon-link";
+	static final String FORECAST_TEXT = "text";
+	
+	/** Attributes **/
+	static final String PERIOD_TITLE = "period-name";
+	static final String TEMP_TYPE = "type";
+	static final String CONDITION_VALUE = "weather-summary";
+	static final String LAYOUT_TYPE = "time-layout";
 	
 	private ForecastData forecast;
 
@@ -71,10 +88,32 @@ public class ForecastParser extends BaseFeedParser {
 	 * @param location : Location to get forecast for {"city, state"}
 	 * @throws UnsupportedEncodingException
 	 */
-	public ForecastParser(Context parentContext, String location) throws UnsupportedEncodingException {
+	public ForecastParser(Context parentContext, CityData location) throws UnsupportedEncodingException {
 		// Build the feed url from the query and the geoLookup url
 		// Use URLEncoder.encode() to remove invalid characters from query
-		super(parentContext.getString(R.string.wui_forecast) + URLEncoder.encode(location, "UTF-8"));
+		super(urlBuilder(location));
+	}
+	
+	private static String urlBuilder(CityData city) throws UnsupportedEncodingException {
+		final String base = "http://forecast.weather.gov/MapClick.php?";
+		final String cityTag = "CityName=";
+		final String stateTag = "state=";
+		final String siteTag = "site=HNX";
+		final String latTag = "textField1=";
+		final String lonTag = "textField2=";
+		final String typeTag = "FcstType=dwml";
+		
+		String url = base;
+		url += cityTag + URLEncoder.encode(city.getCity(), "UTF-8") + "&";
+		url += stateTag + URLEncoder.encode(city.getState(), "UTF-8") + "&";
+		url += siteTag + "&";
+		url += latTag + URLEncoder.encode(city.getLat(), "UTF-8") + "&";
+		url += lonTag + URLEncoder.encode(city.getLon(), "UTF-8") + "&";
+		url += typeTag;
+		
+		Log.v("BlueSky", "NWS url = " + url);
+		
+		return url;
 	}
 
 	/* (non-Javadoc)
@@ -84,7 +123,6 @@ public class ForecastParser extends BaseFeedParser {
 	public ForecastData parse() throws RuntimeException {
 		abort = false;
 		forecast = new ForecastData();
-		FORECAST_TYPE currentType = FORECAST_TYPE.NONE;
 		
 		XmlPullParser parser = Xml.newPullParser();
 		try {
@@ -93,6 +131,8 @@ public class ForecastParser extends BaseFeedParser {
 			
 			int eventType = parser.getEventType();
 			
+			int periodCount = 0;
+			
 			while(eventType != XmlPullParser.END_DOCUMENT && !abort) {
 				String tagName = null;
 				
@@ -100,19 +140,22 @@ public class ForecastParser extends BaseFeedParser {
 				case XmlPullParser.START_TAG:
 					tagName = parser.getName();
 					
-					if(tagName.equalsIgnoreCase(FORECAST_SHORT)) {
-						currentType = FORECAST_TYPE.SHORT;
+					if(tagName.equalsIgnoreCase(PERIOD_ROOT)) {
+						Log.v("BlueSky", "periodCount = " + periodCount);
+						parser = parsePeriods(parser);
+						periodCount++;
 					}
-					else if(tagName.equalsIgnoreCase(FORECAST_EXTENDED)) {
-						currentType = FORECAST_TYPE.EXTENDED;
+					else if(tagName.equalsIgnoreCase(TEMP_ROOT)) {
+						parser = parseTemperatures(parser);
 					}
-					else if(tagName.equalsIgnoreCase(FORECAST_DAY)) {
-						if(currentType == FORECAST_TYPE.SHORT) {
-							parser = parseForecastShort(parser);
-						}
-						else if(currentType == FORECAST_TYPE.EXTENDED) {
-							parser = parseForecastExtended(parser);
-						}
+					else if(tagName.equalsIgnoreCase(CONDITION_ROOT)) {
+						parser = parseConditions(parser);
+					}
+					else if(tagName.equalsIgnoreCase(ICON_ROOT)) {
+						parser = parseIcons(parser);
+					}
+					else if(tagName.equalsIgnoreCase(FORECAST_ROOT)) {
+						parser = parseForecast(parser);
 					}
 					break;
 					
@@ -130,13 +173,13 @@ public class ForecastParser extends BaseFeedParser {
 		return forecast;
 	}
 	
-	private XmlPullParser parseForecastShort(XmlPullParser parser) throws XmlPullParserException, IOException {
+	private XmlPullParser parsePeriods(XmlPullParser parser) throws XmlPullParserException, IOException {
 		String tagName = null;
 		boolean done = false;
-		int index = -1;
-		ForecastDayShort day = forecast.new ForecastDayShort();
-		
 		int eventType = 0;
+		String attribute = null;
+		String layoutKey = "";
+		ForecastData.ForecastDataObject period = null; // pointer to period to write to
 		
 		while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 			// Do the parse at the start so that parser is in correct location on exit
@@ -145,60 +188,70 @@ public class ForecastParser extends BaseFeedParser {
 			switch(eventType) {
 			case XmlPullParser.START_TAG:
 				tagName = parser.getName();
-				
-				if(tagName.equalsIgnoreCase(SHORT_INDEX)) {
-					String temp = parser.nextText();
-					temp.trim();
-					
-					try {
-						index = Integer.parseInt(temp);
-					} catch (NumberFormatException e) {
-						// Set done to true because if the index is unknown then a forecast can not be added
-						done = true;
-						Log.v("BlueSky", "ForecastParser: NumberFormatException when parsing SHORT_INDEX");
-						e.printStackTrace();
+				// Get the layout key
+				if(tagName.equalsIgnoreCase(PERIOD_LAYOUT_KEY)) {
+					layoutKey = parser.nextText();
+				}
+				// Get all the period names
+				else if(tagName.equalsIgnoreCase(PERIOD)) {
+					attribute = parser.getAttributeValue(null, PERIOD_TITLE);
+					if(attribute != null) {
+						// Create the period object
+						if(period == null) {
+							period = new ForecastData.ForecastDataObject();
+							period.timeLayout = layoutKey;
+						}
+						
+						period.data.add(attribute);
 					}
 				}
-				else if(tagName.equalsIgnoreCase(SHORT_ICON)) {
-					day.setIcon(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(SHORT_TITLE)) {
-					day.setTitle(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(SHORT_FORECAST)) {
-					day.setForecast(parser.nextText());
-				}
+				
 				break;
 				
 			case XmlPullParser.END_TAG:
 				tagName = parser.getName();
-				if(tagName.equalsIgnoreCase(FORECAST_DAY)) {
-					// When the end of the Forecast Day element is reached, end the loop
+				if(tagName.equalsIgnoreCase(PERIOD_ROOT)) {
+					// end the loop when the closing root is reached
 					done = true;
 				}
 				break;
 			}
 		}
 		
-		// Make sure the index was parsed
-		if(index != -1) {
-			// Replace previous forecast day with this day
-			//forecast.forecastShort.set(index, day);
-			forecast.forecastShort.add(day);
+		// If period was created then add it to the list of periods
+		if(period != null) {
+			forecast.periods.add(period);
 		}
 		
-		// Returning parser is not necessary but it is more Java like
+		if(period != null) {
+			period.print("Period " + forecast.periods.size());
+		}
+		
 		return parser;
 	}
 	
-	private XmlPullParser parseForecastExtended(XmlPullParser parser) throws XmlPullParserException, IOException {
+	private XmlPullParser parseTemperatures(XmlPullParser parser) throws XmlPullParserException, IOException {
+		final String min = "minimum";
 		String tagName = null;
 		boolean done = false;
-		int index = -1;
-		ForecastDayExtended day = forecast.new ForecastDayExtended();
-		TEMP_TYPE tempFlag = TEMP_TYPE.NONE;
-		
 		int eventType = 0;
+		
+		ForecastDataObject temperature = null;
+
+		// Check if the temperatures are max or min
+		String type = parser.getAttributeValue(null, TEMP_TYPE);
+		boolean isMin = min.equalsIgnoreCase(type);
+		
+		// Set the pointer to the correct temperature object
+		if(isMin) {
+			temperature = forecast.temperatureMin;
+		}
+		else {
+			temperature = forecast.temperatureMax;
+		}
+		
+		// Get the time layout
+		temperature.timeLayout = parser.getAttributeValue(null, LAYOUT_TYPE);
 		
 		while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
 			// Do the parse at the start so that parser is in correct location on exit
@@ -207,78 +260,145 @@ public class ForecastParser extends BaseFeedParser {
 			switch(eventType) {
 			case XmlPullParser.START_TAG:
 				tagName = parser.getName();
+				// Get all the temperature values
+				if(tagName.equalsIgnoreCase(PARAM_VALUE)) {
+					temperature.data.add(parser.nextText());
+				}
 				
-				if(tagName.equalsIgnoreCase(EXTENDED_INDEX)) {
-					String temp = parser.nextText();
-					temp.trim();
-					
-					try {
-						index = Integer.parseInt(temp);
-					} catch (NumberFormatException e) {
-						// Set done to true because if the index is unknown then a forecast can not be added
-						done = true;
-						Log.v("BlueSky", "ForecastParser: NumberFormatException when parsing EXTENDED_INDEX");
-						e.printStackTrace();
-					}
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_ICON)) {
-					day.setIcon(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_DATE_DAY)) {
-					day.setDateDay(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_DATE_MONTH)) {
-					day.setDateMonth(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_DATE_WEEKDAY)) {
-					day.setDateWeekday(parser.nextText());
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_HIGH)) {
-					tempFlag = TEMP_TYPE.HIGH;
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_LOW)) {
-					tempFlag = TEMP_TYPE.LOW;
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_TEMP_F)) {
-					if(tempFlag == TEMP_TYPE.HIGH) {
-						day.setHigh_F(parser.nextText());
-					}
-					else if(tempFlag == TEMP_TYPE.LOW) {
-						day.setLow_F(parser.nextText());
-					}
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_TEMP_C)) {
-					if(tempFlag == TEMP_TYPE.HIGH) {
-						day.setHigh_C(parser.nextText());
-					}
-					else if(tempFlag == TEMP_TYPE.LOW) {
-						day.setLow_C(parser.nextText());
-					}
-				}
-				else if(tagName.equalsIgnoreCase(EXTENDED_CONDITION)) {
-					day.setCondition(parser.nextText());
-				}
 				break;
 				
 			case XmlPullParser.END_TAG:
 				tagName = parser.getName();
-				if(tagName.equalsIgnoreCase(FORECAST_DAY)) {
-					// When the end of the Forecast Day element is reached, end the loop
+				if(tagName.equalsIgnoreCase(TEMP_ROOT)) {
+					// end the loop when the closing root is reached
 					done = true;
 				}
 				break;
 			}
 		}
 		
-		// Make sure the index was parsed
-		if(index != -1) {
-			// Replace previous forecast day with this day
-			//forecast.forecastExtended.set(index, day);
-			forecast.forecastExtended.add(day);
+		if(isMin) {
+			temperature.print("Temp Min");
+		}
+		else {
+			temperature.print("Temp Max");
 		}
 		
-		// Returning parser is not necessary but it is more Java like
 		return parser;
 	}
-
+	
+	private XmlPullParser parseConditions(XmlPullParser parser) throws XmlPullParserException, IOException {
+		String tagName = null;
+		boolean done = false;
+		int eventType = 0;
+		String attribute = null;
+		
+		// Get the time layout
+		forecast.weatherCondition.timeLayout = parser.getAttributeValue(null, LAYOUT_TYPE);
+		
+		while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
+			// Do the parse at the start so that parser is in correct location on exit
+			eventType = parser.next();
+			
+			switch(eventType) {
+			case XmlPullParser.START_TAG:
+				tagName = parser.getName();
+				// Get all the weather conditions
+				if(tagName.equalsIgnoreCase(CONDITION)) {
+					attribute = parser.getAttributeValue(null, CONDITION_VALUE);
+					if(attribute != null) {
+						forecast.weatherCondition.data.add(attribute);
+					}
+				}
+				
+				break;
+				
+			case XmlPullParser.END_TAG:
+				tagName = parser.getName();
+				if(tagName.equalsIgnoreCase(CONDITION_ROOT)) {
+					// end the loop when the closing root is reached
+					done = true;
+				}
+				break;
+			}
+		}
+		
+		forecast.weatherCondition.print("Weather");
+		
+		return parser;
+	}
+	
+	private XmlPullParser parseIcons(XmlPullParser parser) throws XmlPullParserException, IOException {
+		String tagName = null;
+		boolean done = false;
+		int eventType = 0;
+		
+		// Get the time layout
+		forecast.conditionIcon.timeLayout = parser.getAttributeValue(null, LAYOUT_TYPE);
+		
+		while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
+			// Do the parse at the start so that parser is in correct location on exit
+			eventType = parser.next();
+			
+			switch(eventType) {
+			case XmlPullParser.START_TAG:
+				tagName = parser.getName();
+				// Get all the icons for the days
+				if(tagName.equalsIgnoreCase(ICON)) {
+					forecast.conditionIcon.data.add(parser.nextText());
+				}
+				
+				break;
+				
+			case XmlPullParser.END_TAG:
+				tagName = parser.getName();
+				if(tagName.equalsIgnoreCase(ICON_ROOT)) {
+					// end the loop when the closing root is reached
+					done = true;
+				}
+				break;
+			}
+		}
+		
+		forecast.conditionIcon.print("Icon");
+		
+		return parser;
+	}
+	
+	private XmlPullParser parseForecast(XmlPullParser parser) throws XmlPullParserException, IOException {
+		String tagName = null;
+		boolean done = false;
+		int eventType = 0;
+		
+		// Get the time layout
+		forecast.forecastText.timeLayout = parser.getAttributeValue(null, LAYOUT_TYPE);
+		
+		while(eventType != XmlPullParser.END_DOCUMENT && !done && !abort) {
+			// Do the parse at the start so that parser is in correct location on exit
+			eventType = parser.next();
+			
+			switch(eventType) {
+			case XmlPullParser.START_TAG:
+				tagName = parser.getName();
+				// Get all the weather forecasts
+				if(tagName.equalsIgnoreCase(FORECAST_TEXT)) {
+					forecast.forecastText.data.add(parser.nextText());
+				}
+				
+				break;
+				
+			case XmlPullParser.END_TAG:
+				tagName = parser.getName();
+				if(tagName.equalsIgnoreCase(FORECAST_ROOT)) {
+					// end the loop when the closing root is reached
+					done = true;
+				}
+				break;
+			}
+		}
+		
+		forecast.forecastText.print("Forecast");
+		
+		return parser;
+	}
 }
