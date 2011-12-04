@@ -97,17 +97,17 @@ public class UiObjects {
 		
 		this.tabHost.addTab(this.tabHost
 				.newTabSpec("Weather")
-				.setIndicator("Weather", res.getDrawable(R.drawable.ic_airport))
+				.setIndicator("Weather", res.getDrawable(R.drawable.ic_tab_weather))
 				.setContent(R.id.tabWeatherLayout));
 		
 		this.tabHost.addTab(this.tabHost
 				.newTabSpec("Forecast")
-				.setIndicator("Forecast", res.getDrawable(R.drawable.ic_pws))
+				.setIndicator("Forecast", res.getDrawable(R.drawable.ic_tab_forcast))
 				.setContent(R.id.tabForecastLayout));
 		
 		this.tabHost.addTab(this.tabHost
 				.newTabSpec("Stations")
-				.setIndicator("Stations", res.getDrawable(R.drawable.ic_airport))
+				.setIndicator("Stations", res.getDrawable(R.drawable.ic_tab_stations))
 				.setContent(R.id.tabWeatherStationsLayout));
 		
 		this.tabHost.setCurrentTab(0);

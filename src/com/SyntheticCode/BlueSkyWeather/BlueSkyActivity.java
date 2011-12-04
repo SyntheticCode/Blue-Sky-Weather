@@ -249,6 +249,10 @@ public class BlueSkyActivity extends TabActivity {
 				Toast.makeText(this, "Please Search for a City First", Toast.LENGTH_LONG).show();
 			}
 			break;
+		case R.id.menu_settings:
+			// Display the settings activity
+			startActivity(new Intent(this, SettingsActivity.class));
+			break;
 		}
 		return true;
 	}
